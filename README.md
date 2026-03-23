@@ -18,7 +18,7 @@ The car is controlled by a Web page containing a virtual joystick.
 
 <img src="https://github.com/user-attachments/assets/d3b44d02-4885-400b-9ad1-8a20e1871b38" width="300">
 
-By pressing "Enter" on the page, you can control the car with a keyboard!
+You can also control the car with a Keyboard. Activate it by pressing the Enter key at any time, and press it again to switch back to the virtual joystick. Use the `W`, `A`, `S`, `D` or `arrow` keys, along with (`L`)ed and (`F`)lash.
 <img src="https://github.com/user-attachments/assets/3313343c-4895-4c40-9076-929d0d6fde80" />
 
 If you are familiar with configuring internet routers and setting port forwarding, you can also control your car remotely!
@@ -56,7 +56,7 @@ I recommend starting with this project, as it is easier and faster to build whil
 
 <img src="https://github.com/user-attachments/assets/c935c23b-afe2-46e4-af1d-441b9cdcd834" />
 
-### Option 2 - More complex to build (uses DRB8833 bridge)
+### Option 2 - More complex to build (uses DRV8833 bridge)
 If you want to upgrade to a more energy-efficient project with faster motors, and you have time and experience with soldering components, this is a great option.
 
 The DRV8833 uses modern MOSFET transistor and drops around **0.2-0.4v**, while the L298N is based on older bipolar transistor technology and drops around **2-4 V**. This means more voltage reaches the motor, resulting in better performance, less heat, and improved battery efficiency.
@@ -133,7 +133,7 @@ The PINs can be customized in the `Config/src/Config.h`
 // NOTE: Higher quality affect stream FPS
 #define JPEG_QUALITY 25
 
-// Enable Debug (prints car speed and direction in the serial)
+// Enable debug (prints car speed and direction in the serial)
 #define JOYSTICK_DEBUG false
 
 // Set camera model

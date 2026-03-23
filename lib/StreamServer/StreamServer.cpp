@@ -284,7 +284,11 @@ class Logger {
 }
 
 class VideoStream {
-  constructor(selector, port, host = null) {
+  constructor(
+    selector,
+    port,
+    host = null
+  ) {
     this.element = document.querySelector(selector);
     this.port = port;
     this.host = host || window.location.hostname;
@@ -298,7 +302,11 @@ class VideoStream {
 }
 
 class SocketClient {
-  constructor(port, logger, host = null) {
+  constructor(
+    port,
+    logger,
+    host = null
+  ) {
     this.logger = logger;
     this.port = port;
     this.host = host || window.location.hostname;
@@ -344,12 +352,14 @@ class SocketClient {
 }
 
 class ToggleButton {
-  constructor(selector,
+  constructor(
+    selector,
     callback,
-    initivalValue = false) {
+    initialValue = false
+  ) {
     this.element = document.querySelector(selector);
     this.callback = callback;
-    this.setValue(initivalValue);
+    this.setValue(initialValue);
     this.bindEvent();
   }
 
@@ -370,7 +380,10 @@ class ToggleButton {
 }
 
 class MessageSender {
-  constructor(controllerHandler, socketClient) {
+  constructor(
+    controllerHandler,
+    socketClient
+  ) {
     this.controllerHandler = controllerHandler;
     this.socketClient = socketClient;
   }
@@ -393,6 +406,11 @@ class MessageSender {
     this.sendCoords(direction, speed);
   }
 
+  sendGamepad(direction, speed) {
+    if (!this.controllerHandler.isGamepad()) return;
+    this.sendCoords(direction, speed);
+  }
+
   sendCoords(direction, speed) {
     speed = Math.round(speed)
     this.socketClient.send({ direction, speed });
@@ -400,8 +418,10 @@ class MessageSender {
 }
 
 class JoystickController {
-  constructor(messageSender,
-    canvasJoystick) {
+  constructor(
+    messageSender,
+    canvasJoystick
+  ) {
     this.messageSender = messageSender;
     this.canvasJoystick = canvasJoystick;
     this.startLoop();
@@ -424,33 +444,30 @@ class JoystickController {
 }
 
 class KeyboardController {
-  constructor(messageSender,
+  constructor(
+    messageSender,
+    controllerHandler,
     buttonA,
     buttonB,
     acceleration,
-    deceleration) {
-
+    deceleration
+  ) {
     this.messageSender = messageSender;
+    this.controllerHandler = controllerHandler;
     this.buttonA = buttonA;
     this.buttonB = buttonB;
+    this.acceleration = acceleration;
+    this.deceleration = deceleration;
 
+    this.speed = 0;
+    this.maxSpeed = 100;
+    this.direction = "C";
     this.keys = {
       up: false,
       down: false,
       left: false,
       right: false
     };
-
-    this.speed = 0;
-    this.maxSpeed = 100;
-
-    // speed increase per tick
-    this.acceleration = acceleration;
-
-    // speed decrease when no key pressed
-    this.deceleration = deceleration;
-
-    this.direction = "C";
 
     this.bindEvents();
     this.startLoop();
@@ -464,6 +481,11 @@ class KeyboardController {
   handleKey(e, pressed) {
     const key = e.key.toLowerCase();
     const repeat = e.repeat;
+
+    if (pressed && key === "enter") {
+      this.controllerHandler.toggleKeyboard();
+      return;
+    }
 
     if (pressed && key === "f") {
       this.buttonA.toggle();
@@ -516,6 +538,7 @@ class KeyboardController {
 
   startLoop() {
     window.setInterval(() => {
+      if (!this.controllerHandler.isKeyboard()) return;
       this.updateSpeed();
       this.updateDirection();
       this.sendKeyboard();
@@ -566,50 +589,270 @@ class KeyboardController {
   }
 }
 
+class GamepadController {
+  constructor(
+    messageSender,
+    controllerHandler,
+    buttonA,
+    buttonB,
+    acceleration,
+    deceleration
+  ) {
+    this.messageSender = messageSender;
+    this.controllerHandler = controllerHandler;
+    this.buttonA = buttonA;
+    this.buttonB = buttonB;
+
+    // custom parameters
+    this.acceleration = acceleration;
+    this.deceleration = deceleration;
+
+    // static parameters
+    this.maxSpeed = 100;
+    this.hDeadZone = 0.2;
+    this.vDeadZone = 0.1;
+    this.diagonalThreshold = 0.5;
+
+    // system parameters
+    this.speed = 0;
+    this.direction = 'C';
+    this.lastDirection = 'C';
+    this.prevButtons = [];
+    this.gamepad = null;
+
+    // ps3-gamepad buttons
+    this.buttons = {
+      triangle: 0,
+      circle: 1,
+      cross: 2,
+      square: 3,
+      l1: 4,
+      r1: 5,
+      l2: 6,
+      r2: 7,
+      select: 8,
+      start: 9,
+      l3: 10,
+      r3: 11
+    };
+
+    // map buttons
+    this.map = {
+      activation: this.buttons.start,
+      buttonA: this.buttons.square,
+      buttonB: this.buttons.cross
+    }
+
+    this.bindEvents();
+    this.startLoop();
+  }
+
+  bindEvents() {
+    window.addEventListener("gamepadconnected", (e) => {
+      console.log("Gamepad connected");
+      this.controllerHandler.setGamepadIndex(e.gamepad.index);
+    });
+
+    window.addEventListener("gamepaddisconnected", () => {
+      console.log("Gamepad disconnected");
+      this.controllerHandler.setGamepadIndex(null);
+    });
+  }
+
+  updateGamepad() {
+    const index = this.controllerHandler.gamepadIndex;
+    this.gamepad = navigator.getGamepads()[index] || null;
+  }
+
+  startLoop() {
+    window.setInterval(() => {
+      this.updateGamepad();
+      this.checkButtonsPressed();
+      if (!this.controllerHandler.isGamepad()) {
+        return;
+      }
+      this.updateSpeed();
+      this.updateDirection();
+      this.sendGamepad();
+    }, 50);
+  }
+
+  checkButtonsPressed() {
+    if (!this.gamepad) return;
+
+    Object.values(this.map).forEach((index) => {
+      const pressed = this.gamepad.buttons[index].pressed;
+
+      if (this.prevButtons[index] !== pressed) {
+        this.prevButtons[index] = pressed;
+
+        if (pressed && index === this.map.activation) {
+          this.controllerHandler.toggleGamepad();
+          console.log(`Gamepad toggled`);
+        }
+
+        if (pressed && index === this.map.buttonA) {
+          this.buttonA.toggle();
+          console.log("button A");
+        }
+
+        if (pressed && index === this.map.buttonB) {
+          this.buttonB.toggle();
+          console.log("button B");
+        }
+      }
+    });
+  }
+
+  // acceleration (pedal-like)
+  updateSpeed() {
+    if (!this.gamepad) {
+      this.speed = 0;
+      return;
+    }
+
+    // L2/R2 values
+    const up = this.gamepad.buttons[this.buttons.r2].value;
+    const down = this.gamepad.buttons[this.buttons.l2].value;
+
+    const hasUp = up > this.vDeadZone;
+    const hasDown = down > this.vDeadZone;
+
+    // accelerate if ANY movement key is pressed
+    if (hasUp || hasDown) {
+      this.speed += this.acceleration;
+
+      if (this.speed > this.maxSpeed) {
+        this.speed = this.maxSpeed;
+      }
+
+    } else {
+      // decelerate when no keys are pressed
+      this.speed -= this.deceleration;
+
+      if (this.speed < 0) {
+        this.speed = 0;
+      }
+    }
+  }
+
+  updateDirection()
+  {
+    this.direction = this.getDirection();
+    this.lastDirection = this.direction;
+  }
+
+  getDirection() {
+    if (!this.gamepad) {
+      return "C";
+    }
+
+    // L2/R2 values
+    const up = this.gamepad.buttons[this.buttons.r2].value;
+    const down = this.gamepad.buttons[this.buttons.l2].value;
+    
+    // left analog x and y position
+    const x = this.gamepad.axes[0];
+    const y = this.gamepad.axes[1];
+
+    const hasLeft = x < -this.hDeadZone;
+    const hasRight = x > this.hDeadZone;
+    const hasUp = up > this.vDeadZone;
+    const hasDown = down > this.vDeadZone;
+    const hasVerticalStick = Math.abs(y) > this.diagonalThreshold;
+
+    // No input
+    if (!hasLeft && !hasRight && !hasUp && !hasDown) {
+      return "C";
+    }
+
+    // Only vertical (triggers)
+    if (!hasLeft && !hasRight) {
+      if (hasUp) return "N";
+      if (hasDown) return "S";
+    }
+
+    // Only horizontal (stick)
+    if (!hasUp && !hasDown) {
+      if (hasLeft || hasRight) return this.lastDirection;
+    }
+
+    // Combined (diagonals logic)
+    if (hasLeft || hasRight) {
+      const horizontal = hasLeft ? "W" : "E";
+
+      // Prioritize downward diagonal
+      if (hasDown) {
+        return "S" + horizontal; // SW / SE
+      }
+
+      // Upward diagonal only if stick indicates
+      if (hasVerticalStick && hasUp) {
+        return "N" + horizontal; // NW / NE
+      }
+
+      // Otherwise, prioritize horizontal
+      return horizontal;
+    }
+
+    return "C";
+  }
+
+  sendGamepad() {
+    this.messageSender.sendGamepad(this.direction, this.speed);
+  }
+}
+
 class ControllerHandler {
   constructor(joyStickSelector, wasdSelector) {
+    this.gamepadIndex = null;
     this.controller = 'joystick';
     this.joyStickContainer = document.querySelector(joyStickSelector);
     this.wasdContainer = document.querySelector(wasdSelector);
 
-    this.bindEvents();
     this.render();
   }
 
-  setKeyboard() {
-    this.controller = 'keyboard';
-  }
-
-  setJoystick() {
-    this.controller = 'joystick';
-  }
-
-  isKeyboard() {
-    return this.controller === 'keyboard';
+  isGamepad() {
+    return this.controller === 'gamepad';
   }
 
   isJoystick() {
     return this.controller === 'joystick';
   }
 
-  bindEvents() {
-    window.addEventListener("keydown", (e) => this.handleKey(e, true));
+  isKeyboard() {
+    return this.controller === 'keyboard';
   }
 
-  handleKey(e, pressed) {
-    const key = e.key.toLowerCase();
-
-    if (pressed && key === "enter") {
-      this.toggle();
-      return;
-    }
+  setGamepad() {
+    this.controller = 'gamepad';
   }
 
-  toggle() {
-    this.controller = this.isJoystick()
-      ? 'keyboard'
-      : 'joystick';
+  setJoystick() {
+    this.controller = 'joystick';
+  }
+
+  setKeyboard() {
+    this.controller = 'keyboard';
+  }
+
+  toggleGamepad() {
+    this.controller = this.controller === 'gamepad'
+       ? 'joystick'
+       : 'gamepad';
     this.render();
+  }
+
+  toggleKeyboard() {
+    this.controller = this.controller === 'keyboard'
+       ? 'joystick'
+       : 'keyboard';
+    this.render();
+  }
+
+  setGamepadIndex(index) {
+    this.gamepadIndex = index;
   }
 
   render() {
@@ -619,12 +862,15 @@ class ControllerHandler {
 }
 
 window.addEventListener('load', () => {
-  const host = null;
+  const host = null; // for debugging remotely
   const enableLog = true;
   const streamPort = 8001;
   const websocketPort = 8002;
   const keyboardAcceleration = 5;
   const keyboardDeceleration = 5;
+  const gamepadAcceleration = 5;
+  const gamepadDeceleration = 5;
+
   const canvasJoystick = new JoyStick('joystick-canvas', {
     'internalFillColor': '#444',
     'internalStrokeColor': '#222',
@@ -648,10 +894,20 @@ window.addEventListener('load', () => {
 
   new KeyboardController(
     messageSender,
+    controllerHandler,
     buttonA,
     buttonB,
     keyboardAcceleration,
     keyboardDeceleration
+  );
+
+  new GamepadController(
+    messageSender,
+    controllerHandler,
+    buttonA,
+    buttonB,
+    gamepadAcceleration,
+    gamepadDeceleration
   );
 
   new VideoStream(
