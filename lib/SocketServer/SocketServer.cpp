@@ -48,12 +48,12 @@ void SocketServer::onEvent(uint8_t num,
 }
 
 void SocketServer::init(CoordsHandlerFunction coordsHandler,
-                        ButtonToggleHandlerFunction buttonAHandler,
-                        ButtonToggleHandlerFunction buttonBHandler)
+                        ButtonToggleHandlerFunction btnAHandler,
+                        ButtonToggleHandlerFunction btbBHandler)
 {
     _coordsHandler = coordsHandler;
-    _buttonAHandler = buttonAHandler;
-    _buttonBHandler = buttonBHandler;
+    buttonAHandler = btnAHandler;
+    buttonBHandler = btbBHandler;
 
     webSocket.begin();
 }
@@ -64,7 +64,7 @@ void SocketServer::handleWebSocketMessage(char *dataChar)
                              strstr(dataChar, ALIAS_DIRECTION) != nullptr;
     const bool isButtonA = strstr(dataChar, ALIAS_BUTTON_A) != nullptr;
     const bool isButtonB = strstr(dataChar, ALIAS_BUTTON_B) != nullptr;
-
+    
     if (isMovCoords)
     {
         // parse string as a two-members JSON
@@ -86,7 +86,7 @@ void SocketServer::handleWebSocketMessage(char *dataChar)
         return;
     }
 
-    if (isButtonA)
+    if (isButtonA || isButtonB)
     {
         const int jsonSize = JSON_OBJECT_SIZE(1);
         StaticJsonDocument<jsonSize> json;
@@ -97,28 +97,16 @@ void SocketServer::handleWebSocketMessage(char *dataChar)
             return;
         }
 
-        const bool enabled = json[ALIAS_BUTTON_A];
-
-        _buttonAHandler(enabled);
-
-        return;
-    }
-
-    if (isButtonB)
-    {
-        const int jsonSize = JSON_OBJECT_SIZE(1);
-        StaticJsonDocument<jsonSize> json;
-        DeserializationError error = deserializeJson(json, dataChar);
-
-        if (error)
-        {
-            return;
+        if (isButtonA) {
+            const bool enabled = json[ALIAS_BUTTON_A];
+            buttonAHandler(enabled);
         }
 
-        const bool enabled = json[ALIAS_BUTTON_B];
-
-        _buttonBHandler(enabled);
-
+        if (isButtonB) {
+            const bool enabled = json[ALIAS_BUTTON_B];
+            buttonBHandler(enabled);
+        }
+        
         return;
     }
 }

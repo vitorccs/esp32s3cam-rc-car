@@ -49,7 +49,7 @@ body {
 }
 
 button {
-  background: radial-gradient(ellipse at center, #444444 0%, #222222 100%);
+  background: radial-gradient(ellipse at center, #444 0%, #222 100%);
   border: 1px solid #222;
   color: #fff;
   padding: 1rem clamp(1rem, 6vh, 3rem);
@@ -80,12 +80,10 @@ button.pressed {
   width: 100%;
   height: 100%;
   flex-direction: column;
-  align-items: normal;
+  align-items: center;
 }
 
-
 /* container elements */
-
 .container .video {
   background: #111;
   width: 100%;
@@ -98,7 +96,7 @@ button.pressed {
 }
 
 .container .joystick-container,
-.container .wasd-container {
+.container .keyboard-container {
   display: flex;
   justify-content: center;
   width: 100%;
@@ -108,33 +106,42 @@ button.pressed {
 .container .buttons {
   display: flex;
   border: 0px solid green;
-  padding: 0 2rem;
   flex-direction: row;
-  justify-content: space-evenly;
+  padding: 0 2rem;
+  justify-content: end;
+  gap: .5rem;
 }
 
 .container .joystick-container #joystick-canvas {
   width: 70%;
   aspect-ratio: 1/1;
+  cursor: pointer;
 }
 
 /* buttons container */
-.buttons button.pressed:nth-child(1) {
-  color: yellow;
+.container .buttons button {
+  max-width: 220px;
 }
 
-.buttons button.pressed:nth-child(2) {
+.container .buttons button:hover {
+  cursor: pointer;
+  background: radial-gradient(ellipse at center, #444 0%, #111 100%);
+}
+
+.container .buttons button.pressed {
   color: yellow;
 }
 
 /* WASD */
-.container .wasd-container {
+.container .keyboard-container {
   display: none;
   width: auto;
   margin: 4rem;
+  flex-direction: column;
+  align-items: center;
 }
 
-.container .wasd-container .wasd {
+.container .keyboard-container .wasd {
   display: grid;
   grid-template-columns: repeat(3, 70px);
   grid-template-rows: repeat(2, 70px);
@@ -142,7 +149,7 @@ button.pressed {
   width: max-content;
 }
 
-.container .wasd-container .key {
+.container .keyboard-container .wasd .key {
   width: 70px;
   height: 70px;
   border: 3px solid #333;
@@ -158,25 +165,39 @@ button.pressed {
   border-radius: 1rem;
 }
 
-.container .wasd-container .key.active {
+.container .keyboard-container .wasd .key.active {
   background-color: #dcdcd6;
 }
 
+.container .keyboard-container .max-speed {
+  font-size: 1.3rem;
+  color: #333;
+  font-weight: bold;
+  margin-top: 3rem;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.container .keyboard-container .max-speed b {
+  font-size: 1.8rem;
+  color: #222;
+}
+
+@media (min-height: 750px) {
+  .container .buttons {
+    flex-direction: column;
+  }
+}
 
 @media (min-width: 650px) {
-  button {
-    margin: 1rem 0;
-  }
-
   .container {
     align-items: center;
     flex-direction: row;
   }
 
   .container .buttons {
-    padding: 0 2rem;
     flex-direction: column;
-    justify-content: end;
+    gap: 1rem;
   }
 
   .container .video {
@@ -203,10 +224,6 @@ button.pressed {
 @media (min-width: 750px) {
   .container .video img {
     min-width: 350px;
-  }
-
-  .container .buttons {
-    padding: 0 2rem;
   }
 }
 
@@ -245,7 +262,7 @@ let StickStatus = { xPosition: 0, yPosition: 0, x: 0, y: 0, cardinalDirection: "
   <div class="joystick-container">
     <div id="joystick-canvas"></div>
   </div>
-  <div class="wasd-container">
+  <div class="keyboard-container">
     <div class="wasd">
       <div></div>
       <div class="key" data-key="up">W</div>
@@ -255,10 +272,14 @@ let StickStatus = { xPosition: 0, yPosition: 0, x: 0, y: 0, cardinalDirection: "
       <div class="key" data-key="down">S</div>
       <div class="key" data-key="right">D</div>
     </div>
+    <div class="max-speed">
+      Max Speed <b></b>
+    </div>
   </div>
   <div class="buttons">
     <button type="button" id="button-a">FLASH</button>
     <button type="button" id="button-b">LEDs</button>
+    <button type="button" id="button-c">PHOTO</button>
   </div>
 </section>
 
@@ -345,9 +366,35 @@ class SocketClient {
   }
 
   onError(error) {
-    console.log(error);
     const message = `WebSocket Error ${error} at ${this.url}`;
     this.logger.fail(message);
+  }
+}
+
+class PushButton {
+  constructor(
+    selector,
+    callback
+  ) {
+    this.element = document.querySelector(selector);
+    this.callback = callback;
+    this.setValue(false);
+    this.bindEvent();
+  }
+
+  bindEvent() {
+    this.element.addEventListener('click', async() => this.press());
+  }
+
+  async press() {
+    this.setValue(true);
+    this.callback();
+    this.setValue(false);
+  }
+
+  setValue(value) {
+    this.value = value;
+    this.element.classList.toggle('pressed', value);
   }
 }
 
@@ -364,10 +411,10 @@ class ToggleButton {
   }
 
   bindEvent() {
-    this.element.addEventListener('click', () => this.toggle());
+    this.element.addEventListener('click', () => this.press());
   }
 
-  toggle() {
+  press() {
     const newValue = !this.value;
     this.setValue(newValue);
     this.callback(newValue);
@@ -449,6 +496,7 @@ class KeyboardController {
     controllerHandler,
     buttonA,
     buttonB,
+    buttonC,
     acceleration,
     deceleration
   ) {
@@ -456,6 +504,7 @@ class KeyboardController {
     this.controllerHandler = controllerHandler;
     this.buttonA = buttonA;
     this.buttonB = buttonB;
+    this.buttonC = buttonC;
     this.acceleration = acceleration;
     this.deceleration = deceleration;
 
@@ -471,6 +520,13 @@ class KeyboardController {
 
     this.bindEvents();
     this.startLoop();
+    this.setMaxSpeed();
+  }
+
+  setMaxSpeed(speed = 100) {
+    this.maxSpeed = speed;
+    const el = document.querySelector(`.keyboard-container .max-speed b`);
+    el.textContent = this.maxSpeed;
   }
 
   bindEvents() {
@@ -488,12 +544,17 @@ class KeyboardController {
     }
 
     if (pressed && key === "f") {
-      this.buttonA.toggle();
+      this.buttonA.press();
       return;
     }
 
     if (pressed && key === "l") {
-      this.buttonB.toggle();
+      this.buttonB.press();
+      return;
+    }
+
+    if (pressed && key === "p") {
+      this.buttonC.press();
       return;
     }
 
@@ -521,11 +582,41 @@ class KeyboardController {
         this.keys.right = pressed;
         this.highlighKey('right', pressed, repeat);
         break;
+      case "1":
+        this.setMaxSpeed(10);
+        break;
+      case "2":
+        this.setMaxSpeed(20);
+        break;
+      case "3":
+        this.setMaxSpeed(30);
+        break;
+      case "4":
+        this.setMaxSpeed(40);
+        break;
+      case "5":
+        this.setMaxSpeed(50);
+        break;
+      case "6":
+        this.setMaxSpeed(60);
+        break;
+      case "7":
+        this.setMaxSpeed(70);
+        break;
+      case "8":
+        this.setMaxSpeed(80);
+        break;
+      case "9":
+        this.setMaxSpeed(90);
+        break;
+      case "0":
+        this.setMaxSpeed(100);
+        break;
     }
   }
 
   highlighKey(key, pressed, repeat) {
-    const el = document.querySelector(`.key[data-key="${key}"]`);
+    const el = document.querySelector(`.wasd .key[data-key="${key}"]`);
 
     if (!el) return;
 
@@ -591,17 +682,21 @@ class KeyboardController {
 
 class GamepadController {
   constructor(
+    logger,
     messageSender,
     controllerHandler,
     buttonA,
     buttonB,
+    buttonC,
     acceleration,
     deceleration
   ) {
+    this.logger = logger;
     this.messageSender = messageSender;
     this.controllerHandler = controllerHandler;
     this.buttonA = buttonA;
     this.buttonB = buttonB;
+    this.buttonC = buttonC;
 
     // custom parameters
     this.acceleration = acceleration;
@@ -640,7 +735,8 @@ class GamepadController {
     this.map = {
       activation: this.buttons.start,
       buttonA: this.buttons.square,
-      buttonB: this.buttons.cross
+      buttonB: this.buttons.cross,
+      buttonC: this.buttons.triangle
     }
 
     this.bindEvents();
@@ -649,12 +745,12 @@ class GamepadController {
 
   bindEvents() {
     window.addEventListener("gamepadconnected", (e) => {
-      console.log("Gamepad connected");
+      this.logger.debug('Gamepad connected');
       this.controllerHandler.setGamepadIndex(e.gamepad.index);
     });
 
     window.addEventListener("gamepaddisconnected", () => {
-      console.log("Gamepad disconnected");
+      this.logger.debug('Gamepad disconnected');
       this.controllerHandler.setGamepadIndex(null);
     });
   }
@@ -688,17 +784,18 @@ class GamepadController {
 
         if (pressed && index === this.map.activation) {
           this.controllerHandler.toggleGamepad();
-          console.log(`Gamepad toggled`);
         }
 
         if (pressed && index === this.map.buttonA) {
-          this.buttonA.toggle();
-          console.log("button A");
+          this.buttonA.press();
         }
 
         if (pressed && index === this.map.buttonB) {
-          this.buttonB.toggle();
-          console.log("button B");
+          this.buttonB.press();
+        }
+
+        if (pressed && index === this.map.buttonC) {
+          this.buttonC.press();
         }
       }
     });
@@ -861,9 +958,30 @@ class ControllerHandler {
   }
 }
 
+class PhotoService {
+
+  constructor(
+    port,
+    host = null
+  ) {
+    this.port = port;
+    this.host = host || window.location.hostname;
+    this.url = `http://${this.host}:${this.port}/capture`;
+  }
+
+  async capture() {
+    // a simple solution to download the picture in the background
+    const a = document.createElement('a');
+    a.target = '_blank';
+    a.href = this.url;
+    a.click();
+  }
+}
+
 window.addEventListener('load', () => {
-  const host = null; // for debugging remotely
+  const host = null; // change for debugging remotely
   const enableLog = true;
+  const httpPort = 8000;
   const streamPort = 8001;
   const websocketPort = 8002;
   const keyboardAcceleration = 5;
@@ -881,11 +999,13 @@ window.addEventListener('load', () => {
   const socketClient = new SocketClient(websocketPort, logger, host);
   const controllerHandler = new ControllerHandler(
     '.joystick-container',
-    '.wasd-container',
+    '.keyboard-container',
   );
   const messageSender = new MessageSender(controllerHandler, socketClient);
+  const photoService = new PhotoService(httpPort, host);
   const buttonA = new ToggleButton('#button-a', (value) => messageSender.sendButtonA(value));
   const buttonB = new ToggleButton('#button-b', (value) => messageSender.sendButtonB(value));
+  const buttonC = new PushButton('#button-c', async() => await photoService.capture());
 
   new JoystickController(
     messageSender,
@@ -897,15 +1017,18 @@ window.addEventListener('load', () => {
     controllerHandler,
     buttonA,
     buttonB,
+    buttonC,
     keyboardAcceleration,
     keyboardDeceleration
   );
 
   new GamepadController(
+    logger,
     messageSender,
     controllerHandler,
     buttonA,
     buttonB,
+    buttonC,
     gamepadAcceleration,
     gamepadDeceleration
   );
@@ -947,10 +1070,10 @@ void StreamServer::init(framesize_t frameSize,
     config.xclk_freq_hz = 20000000;
     config.pixel_format = PIXFORMAT_JPEG;
     // config.grab_mode = CAMERA_GRAB_LATEST;
-    // config.fb_location = CAMERA_FB_IN_PSRAM;
+    config.fb_location = CAMERA_FB_IN_PSRAM;
     config.frame_size = frameSize;
     config.jpeg_quality = jpegQuality;
-    config.fb_count = 1;
+    config.fb_count = 2;
 
     // Camera init
     esp_err_t err = esp_camera_init(&config);
@@ -1041,6 +1164,32 @@ esp_err_t StreamServer::stream_handler(httpd_req_t *req)
     return res;
 }
 
+esp_err_t StreamServer::capture_handler(httpd_req_t *req)
+{
+    camera_fb_t *fb = esp_camera_fb_get();
+
+    if (!fb)
+    {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
+    // Set response type
+    httpd_resp_set_type(req, "image/jpeg");
+
+    // force download instead of preview
+    char filename[40];
+    snprintf(filename, sizeof(filename), "attachment; filename=capture_%lu.jpg", millis());
+    httpd_resp_set_hdr(req, "Content-Disposition", filename);
+
+    // Send image buffer
+    esp_err_t res = httpd_resp_send(req, (const char *)fb->buf, fb->len);
+
+    esp_camera_fb_return(fb);
+
+    return res;
+}
+
 void StreamServer::startStream()
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
@@ -1051,11 +1200,20 @@ void StreamServer::startStream()
         .uri = "/",
         .method = HTTP_GET,
         .handler = StreamServer::index_handler,
-        .user_ctx = NULL};
+        .user_ctx = NULL
+    };
+    
+    httpd_uri_t capture_uri = {
+        .uri = "/capture",
+        .method = HTTP_GET,
+        .handler = StreamServer::capture_handler,
+        .user_ctx = NULL
+    };
 
     if (httpd_start(&camera_httpd, &config) == ESP_OK)
     {
         httpd_register_uri_handler(camera_httpd, &index_uri);
+        httpd_register_uri_handler(camera_httpd, &capture_uri);
     }
 
     config.server_port = 8001;

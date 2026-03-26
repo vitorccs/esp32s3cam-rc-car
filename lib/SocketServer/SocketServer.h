@@ -13,8 +13,8 @@ public:
     SocketServer();
 
     void init(CoordsHandlerFunction coordsHandler,
-              ButtonToggleHandlerFunction buttonAHandler,
-              ButtonToggleHandlerFunction buttonBHandler);
+              ButtonToggleHandlerFunction btnAHandler,
+              ButtonToggleHandlerFunction btnBHandler);
 
     void onEvent(uint8_t num,
                  WStype_t type,
@@ -28,8 +28,8 @@ public:
 private:
     WebSocketsServer webSocket;
     CoordsHandlerFunction _coordsHandler;
-    ButtonToggleHandlerFunction _buttonAHandler;
-    ButtonToggleHandlerFunction _buttonBHandler;
+    ButtonToggleHandlerFunction buttonAHandler;
+    ButtonToggleHandlerFunction buttonBHandler;
     const char *ALIAS_DIRECTION;
     const char *ALIAS_SPEED;
     const char *ALIAS_BUTTON_A;

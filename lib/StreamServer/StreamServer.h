@@ -9,8 +9,11 @@ class StreamServer
 public:
     void init(framesize_t frameSize, int jpegQuality);
     void startStream();
+    void handleCapture();
+protected:
     static esp_err_t index_handler(httpd_req_t *req);
     static esp_err_t stream_handler(httpd_req_t *req);
+    static esp_err_t capture_handler(httpd_req_t *req);
 };
 
 #endif
