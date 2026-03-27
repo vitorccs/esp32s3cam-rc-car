@@ -467,15 +467,20 @@ class MessageSender {
 class JoystickController {
   constructor(
     messageSender,
+    controllerHandler,
     canvasJoystick
   ) {
     this.messageSender = messageSender;
+    this.controllerHandler = controllerHandler;
     this.canvasJoystick = canvasJoystick;
     this.startLoop();
   }
 
   startLoop() {
-    window.setInterval(() => this.sendJoystick(), 50);
+    window.setInterval(() => {
+      if (!this.controllerHandler.isJoystick()) return;
+      this.sendJoystick();
+    }, 50);
   }
 
   sendJoystick() {
@@ -510,7 +515,7 @@ class KeyboardController {
 
     this.speed = 0;
     this.maxSpeed = 100;
-    this.direction = "C";
+    this.direction = 'C';
     this.keys = {
       up: false,
       down: false,
@@ -530,30 +535,30 @@ class KeyboardController {
   }
 
   bindEvents() {
-    window.addEventListener("keydown", (e) => this.handleKey(e, true));
-    window.addEventListener("keyup", (e) => this.handleKey(e, false));
+    window.addEventListener('keydown', (e) => this.handleKey(e, true));
+    window.addEventListener('keyup', (e) => this.handleKey(e, false));
   }
 
   handleKey(e, pressed) {
     const key = e.key.toLowerCase();
     const repeat = e.repeat;
 
-    if (pressed && key === "enter") {
+    if (pressed && key === 'enter') {
       this.controllerHandler.toggleKeyboard();
       return;
     }
 
-    if (pressed && key === "f") {
+    if (pressed && key === 'f') {
       this.buttonA.press();
       return;
     }
 
-    if (pressed && key === "l") {
+    if (pressed && key === 'l') {
       this.buttonB.press();
       return;
     }
 
-    if (pressed && key === "p") {
+    if (pressed && key === 'p') {
       this.buttonC.press();
       return;
     }
@@ -562,25 +567,25 @@ class KeyboardController {
       case "arrowup":
       case "w":
         this.keys.up = pressed;
-        this.highlighKey('up', pressed, repeat);
+        this.highlightKey('up', pressed, repeat);
         break;
 
       case "arrowdown":
       case "s":
         this.keys.down = pressed;
-        this.highlighKey('down', pressed, repeat);
+        this.highlightKey('down', pressed, repeat);
         break;
 
       case "arrowleft":
       case "a":
         this.keys.left = pressed;
-        this.highlighKey('left', pressed, repeat);
+        this.highlightKey('left', pressed, repeat);
         break;
 
       case "arrowright":
       case "d":
         this.keys.right = pressed;
-        this.highlighKey('right', pressed, repeat);
+        this.highlightKey('right', pressed, repeat);
         break;
       case "1":
         this.setMaxSpeed(10);
@@ -615,7 +620,7 @@ class KeyboardController {
     }
   }
 
-  highlighKey(key, pressed, repeat) {
+  highlightKey(key, pressed, repeat) {
     const el = document.querySelector(`.wasd .key[data-key="${key}"]`);
 
     if (!el) return;
@@ -841,7 +846,7 @@ class GamepadController {
 
   getDirection() {
     if (!this.gamepad) {
-      return "C";
+      return 'C';
     }
 
     // L2/R2 values
@@ -860,13 +865,13 @@ class GamepadController {
 
     // No input
     if (!hasLeft && !hasRight && !hasUp && !hasDown) {
-      return "C";
+      return 'C';
     }
 
     // Only vertical (triggers)
     if (!hasLeft && !hasRight) {
-      if (hasUp) return "N";
-      if (hasDown) return "S";
+      if (hasUp) return 'N';
+      if (hasDown) return 'S';
     }
 
     // Only horizontal (stick)
@@ -876,23 +881,23 @@ class GamepadController {
 
     // Combined (diagonals logic)
     if (hasLeft || hasRight) {
-      const horizontal = hasLeft ? "W" : "E";
+      const horizontal = hasLeft ? 'W' : 'E';
 
       // Prioritize downward diagonal
       if (hasDown) {
-        return "S" + horizontal; // SW / SE
+        return 'S' + horizontal; // SW / SE
       }
 
       // Upward diagonal only if stick indicates
       if (hasVerticalStick && hasUp) {
-        return "N" + horizontal; // NW / NE
+        return 'N' + horizontal; // NW / NE
       }
 
       // Otherwise, prioritize horizontal
       return horizontal;
     }
 
-    return "C";
+    return 'C';
   }
 
   sendGamepad() {
@@ -979,7 +984,8 @@ class PhotoService {
 }
 
 window.addEventListener('load', () => {
-  const host = null; // change for debugging remotely
+  // const host = null; // change for debugging remotely
+  const host = '192.168.10.194'; // change for debugging remotely
   const enableLog = true;
   const httpPort = 8000;
   const streamPort = 8001;
@@ -1009,6 +1015,7 @@ window.addEventListener('load', () => {
 
   new JoystickController(
     messageSender,
+    controllerHandler,
     canvasJoystick
   );
 
@@ -1069,11 +1076,11 @@ void StreamServer::init(framesize_t frameSize,
     config.pin_reset = RESET_GPIO_NUM;
     config.xclk_freq_hz = 20000000;
     config.pixel_format = PIXFORMAT_JPEG;
-    // config.grab_mode = CAMERA_GRAB_LATEST;
+    config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
     config.fb_location = CAMERA_FB_IN_PSRAM;
     config.frame_size = frameSize;
     config.jpeg_quality = jpegQuality;
-    config.fb_count = 2;
+    config.fb_count = 1;
 
     // Camera init
     esp_err_t err = esp_camera_init(&config);
@@ -1158,6 +1165,8 @@ esp_err_t StreamServer::stream_handler(httpd_req_t *req)
         ESP_LOGI(TAG, "MJPG: %uKB %ums (%.1ffps)",
             (uint32_t)(jpg_buf_len/1024),
             (uint32_t)frame_time, fps);
+
+        vTaskDelay(1);
     }
 
     last_frame = 0;

@@ -8,13 +8,14 @@ void WifiHandler::connect(const char *ssid,
                           const char *pwd)
 {
     WiFi.begin(ssid, pwd);
-    WiFi.setSleep(false);
 
     while (WiFi.status() != WL_CONNECTED)
     {
         delay(500);
         Serial.print(".");
     }
+
+    WiFi.setSleep(false);
 
     debug(WiFi, ssid, false);
 }

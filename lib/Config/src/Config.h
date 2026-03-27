@@ -26,7 +26,7 @@
 
 // Set JPEG quality (0 to 63 - lower means higher quality)
 // NOTE: Higher quality affect stream FPS
-#define JPEG_QUALITY 25
+#define JPEG_QUALITY 35
 
 // Enable debug (prints car speed and direction in the serial)
 #define JOYSTICK_DEBUG false
