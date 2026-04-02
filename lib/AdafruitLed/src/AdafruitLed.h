@@ -2,8 +2,9 @@
 #define ADAFRUITLED_H
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
+#include <Led.h>
 
-class AdafruitLed
+class AdafruitLed : public Led
 {
 public:
   boolean state = false;
@@ -11,9 +12,9 @@ public:
 
   AdafruitLed(uint8_t pin);
   void init();
-  void turnOn();
-  void turnOff();
-  void setState(boolean state);
+  void turnOn() override;
+  void turnOff() override;
+  void setState(uint8_t state) override;
   void setColor(uint8_t red, uint8_t green, uint8_t blue);
 
 private:

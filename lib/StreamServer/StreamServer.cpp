@@ -984,8 +984,8 @@ class PhotoService {
 }
 
 window.addEventListener('load', () => {
-  // const host = null; // change for debugging remotely
-  const host = '192.168.10.194'; // change for debugging remotely
+  let host = null;
+  // host = '192.168.10.194'; // for remote debug
   const enableLog = true;
   const httpPort = 8000;
   const streamPort = 8001;
@@ -1165,8 +1165,6 @@ esp_err_t StreamServer::stream_handler(httpd_req_t *req)
         ESP_LOGI(TAG, "MJPG: %uKB %ums (%.1ffps)",
             (uint32_t)(jpg_buf_len/1024),
             (uint32_t)frame_time, fps);
-
-        vTaskDelay(1);
     }
 
     last_frame = 0;

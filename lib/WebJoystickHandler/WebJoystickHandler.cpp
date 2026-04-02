@@ -5,7 +5,6 @@
 
 WebJoystickHandler::WebJoystickHandler(Car &car) : _car(car)
 {
-    this->_car = car;
 }
 
 void WebJoystickHandler::setDebug(bool enable)

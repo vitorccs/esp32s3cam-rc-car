@@ -17,7 +17,13 @@ DCMotor motor1(PIN_M1_IN1, PIN_M1_IN2);
 DCMotor motor2(PIN_M2_IN1, PIN_M2_IN2);
 DigitalLed frontLed1(PIN_FRONT_LED_1);
 DigitalLed frontLed2(PIN_FRONT_LED_2);
-AdafruitLed camLed(PIN_CAMERA_LED);
+
+#if defined(CAMERA_MODEL_ESP32S3_CAM_BOARD)
+  AdafruitLed camLed(PIN_CAMERA_LED); 
+#else 
+  DigitalLed camLed(PIN_CAMERA_LED);
+#endif 
+
 Car car(motor1, motor2, frontLed1, frontLed2, camLed);
 DigitalLed boardLed(PIN_BOARD_LED);
 
@@ -35,7 +41,9 @@ void setup()
   Serial.setDebugOutput(false);
 
   // Adafruit RGB LED requires initialization
-  camLed.init();
+  #if defined(CAMERA_MODEL_ESP32S3_CAM_BOARD)
+    camLed.init();
+  #endif
 
   // initialize car stopped
   car.stop();
@@ -79,7 +87,7 @@ void setup()
                     buttonAHandler,
                     buttonBHandler);
 
-  // turn on buil-in board led to indicate the car is ready
+  // turn on built-in board led to indicate the car is ready
   boardLed.turnOn();
 }
 

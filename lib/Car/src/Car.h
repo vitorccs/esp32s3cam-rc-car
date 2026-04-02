@@ -4,6 +4,7 @@
 #include <DCMotor.h>
 #include <DigitalLed.h>
 #include <AdafruitLed.h>
+#include <Led.h>
 
 class Car
 {
@@ -12,7 +13,9 @@ public:
         DCMotor &m2,
         DigitalLed &fLed1,
         DigitalLed &fLed2,
-        AdafruitLed &camLed);
+        Led &camLed);
+    Car(const Car &other) = delete;
+    Car &operator=(const Car &other) = delete;
     void backward(uint8_t speed = 100);
     void backwardLeft(uint8_t speed = 100);
     void backwardRight(uint8_t speed = 100);
@@ -34,6 +37,6 @@ private:
     DCMotor motor2;
     DigitalLed frontLed1;
     DigitalLed frontLed2;
-    AdafruitLed cameraLed;
+    Led *cameraLed;
 };
 #endif

@@ -32,11 +32,11 @@ void AdafruitLed::setColor(uint8_t red,
   this->blue = blue;
 }
 
-void AdafruitLed::setState(boolean state)
+void AdafruitLed::setState(uint8_t state)
 {
-  this->state = state;
+  this->state = state != 0;
 
-  if (state)
+  if (this->state)
   {
     led.setPixelColor(0, led.Color(this->red, this->green, this->blue));
     led.show();

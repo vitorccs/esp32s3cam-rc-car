@@ -7,7 +7,23 @@
 // + false = connect to an existing WiFi with internet connection
 #define WIFI_AP_MODE false
 
+// Set minimum motor speed (0 to 255)
+#define MIN_MOTOR_SPEED 80
+
+// Enable debug (prints car speed and direction in the serial)
+#define JOYSTICK_DEBUG false
+
+// Set camera model
+//#define CAMERA_MODEL_AI_THINKER
+#define CAMERA_MODEL_ESP32S3_CAM_BOARD
+// #define CAMERA_MODEL_XIAO_ESP32S3
+
+// Set JPEG quality (0 to 63 - lower means higher quality)
+// NOTE: Higher image quality reduces CPU usage for compression.
+#define JPEG_QUALITY 20
+
 // Customize PINS
+#if defined(CAMERA_MODEL_ESP32S3_CAM_BOARD)
 #define PIN_M1_IN1 14
 #define PIN_M1_IN2 47
 #define PIN_M2_IN1 38
@@ -16,36 +32,31 @@
 #define PIN_FRONT_LED_2 40
 #define PIN_CAMERA_LED 48
 #define PIN_BOARD_LED 2
-
-// Set minimum motor speed (0 to 255)
-#define MIN_MOTOR_SPEED 80
-
-// Set JPEG resolution 
-// NOTE: higher resolutions affect stream FPS
+// NOTE: higher resolutions affect framerate
 #define FRAME_SIZE FRAMESIZE_SVGA
 
-// Set JPEG quality (0 to 63 - lower means higher quality)
-// NOTE: Higher quality affect stream FPS
-#define JPEG_QUALITY 35
+#elif defined(CAMERA_MODEL_XIAO_ESP32S3)
+#define PIN_M1_IN1 1
+#define PIN_M1_IN2 2
+#define PIN_M2_IN1 3
+#define PIN_M2_IN2 4
+#define PIN_FRONT_LED_1 9
+#define PIN_FRONT_LED_2 8
+#define PIN_CAMERA_LED 7
+#define PIN_BOARD_LED 21
+// NOTE: higher resolutions affect framerate
+#define FRAME_SIZE FRAMESIZE_SVGA
 
-// Enable debug (prints car speed and direction in the serial)
-#define JOYSTICK_DEBUG false
+#elif defined(CAMERA_MODEL_AI_THINKER)
+#define PIN_M1_IN1 14
+#define PIN_M1_IN2 15
+#define PIN_M2_IN1 12
+#define PIN_M2_IN2 13
+#define PIN_FRONT_LED_1 2
+#define PIN_FRONT_LED_2 3
+#define PIN_CAMERA_LED 4
+#define PIN_BOARD_LED 33
+// NOTE: higher resolutions affect framerate
+#define FRAME_SIZE FRAMESIZE_VGA
 
-// Set camera model
-// #define CAMERA_MODEL_AI_THINKER
-#define CAMERA_MODEL_ESP32S3_CAM_BOARD
-// #define CAMERA_MODEL_WROVER_KIT
-// #define CAMERA_MODEL_ESP_EYE
-// #define CAMERA_MODEL_ESP32S3_EYE
-// #define CAMERA_MODEL_M5STACK_PSRAM
-// #define CAMERA_MODEL_M5STACK_V2_PSRAM
-// #define CAMERA_MODEL_M5STACK_WIDE
-// #define CAMERA_MODEL_M5STACK_ESP32CAM
-// #define CAMERA_MODEL_M5STACK_UNITCAM
-// #define CAMERA_MODEL_TTGO_T_JOURNAL
-// #define CAMERA_MODEL_XIAO_ESP32S3
-// #define CAMERA_MODEL_ESP32S2_CAM_BOARD
-// #define CAMERA_MODEL_ESP32S3_CAM_LCD
-// #define CAMERA_MODEL_DFRobot_FireBeetle2_ESP32S3
-// #define CAMERA_MODEL_DFRobot_Romeo_ESP32S3
-// #define CAMERA_MODEL_ESP32_CAM_BOARD
+#endif
