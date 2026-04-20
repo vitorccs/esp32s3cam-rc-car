@@ -25,7 +25,7 @@ DigitalLed frontLed2(PIN_FRONT_LED_2);
 #endif 
 
 Car car(motor1, motor2, frontLed1, frontLed2, camLed);
-DigitalLed boardLed(PIN_BOARD_LED);
+// DigitalLed boardLed(PIN_BOARD_LED);
 
 // Handlers
 WifiHandler wifiHandler;
@@ -88,7 +88,7 @@ void setup()
                     buttonBHandler);
 
   // turn on built-in board led to indicate the car is ready
-  boardLed.turnOn();
+  // boardLed.turnOn();
 }
 
 void loop()

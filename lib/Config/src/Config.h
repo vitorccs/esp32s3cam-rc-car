@@ -1,6 +1,6 @@
 // WiFi credentials
-#define WIFI_SSID "YOUR_SSID"
-#define WIFI_PWD "YOUR_PASSWORD"
+#define WIFI_SSID "Athena"
+#define WIFI_PWD "washington"
 
 // Access Point mode 
 // + true = creates a WiFi network without internet connection
@@ -20,20 +20,20 @@
 
 // Set JPEG quality (0 to 63 - lower means higher quality)
 // NOTE: Higher image quality reduces CPU usage for compression.
-#define JPEG_QUALITY 20
+#define JPEG_QUALITY 15
 
 // Customize PINS
 #if defined(CAMERA_MODEL_ESP32S3_CAM_BOARD)
-#define PIN_M1_IN1 14
-#define PIN_M1_IN2 47
-#define PIN_M2_IN1 38
+#define PIN_M1_IN1 42
+#define PIN_M1_IN2 41
+#define PIN_M2_IN1 40
 #define PIN_M2_IN2 39
-#define PIN_FRONT_LED_1 41
-#define PIN_FRONT_LED_2 40
+#define PIN_FRONT_LED_1 38
+#define PIN_FRONT_LED_2 3
 #define PIN_CAMERA_LED 48
 #define PIN_BOARD_LED 2
 // NOTE: higher resolutions affect framerate
-#define FRAME_SIZE FRAMESIZE_SVGA
+#define FRAME_SIZE FRAMESIZE_VGA
 
 #elif defined(CAMERA_MODEL_XIAO_ESP32S3)
 #define PIN_M1_IN1 1
