@@ -7,7 +7,7 @@
 #include <WebJoystickHandler.h>
 #include <JoyCoords.h>
 #include <Car.h>
-#include <DigitalLed.h>
+#include <PwmLed.h>
 #include <AdafruitLed.h>
 #include <sensor.h>
 #include <Config.h>
@@ -15,17 +15,15 @@
 // Car components
 DCMotor motor1(PIN_M1_IN1, PIN_M1_IN2);
 DCMotor motor2(PIN_M2_IN1, PIN_M2_IN2);
-DigitalLed frontLed1(PIN_FRONT_LED_1);
-DigitalLed frontLed2(PIN_FRONT_LED_2);
+PwmLed frontLed(PIN_FRONT_LED);
 
-#if defined(CAMERA_MODEL_ESP32S3_CAM_BOARD)
-  AdafruitLed camLed(PIN_CAMERA_LED); 
-#else 
-  DigitalLed camLed(PIN_CAMERA_LED);
-#endif 
+#if defined(PIN_RGB_LED)
+AdafruitLed boardLed(PIN_RGB_LED);
+#elif defined(PIN_BOARD_LED)
+DigitalLed boardLed(PIN_BOARD_LED);
+#endif
 
-Car car(motor1, motor2, frontLed1, frontLed2, camLed);
-// DigitalLed boardLed(PIN_BOARD_LED);
+Car car(motor1, motor2, frontLed);
 
 // Handlers
 WifiHandler wifiHandler;
@@ -40,10 +38,14 @@ void setup()
   Serial.begin(115200);
   Serial.setDebugOutput(false);
 
-  // Adafruit RGB LED requires initialization
-  #if defined(CAMERA_MODEL_ESP32S3_CAM_BOARD)
-    camLed.init();
-  #endif
+// RGB LED customization
+#if defined(PIN_RGB_LED)
+  boardLed.init(); // requires initialization
+  boardLed.setGreen();
+  boardLed.setLowBrightness();
+#elif defined(PIN_BOARD_LED)
+  boardLed.setInverted(true); // built-in board LED is inverted
+#endif
 
   // initialize car stopped
   car.stop();
@@ -73,22 +75,27 @@ void setup()
     webJoystickHandler.handle(coords);
   };
 
-  ButtonToggleHandlerFunction buttonAHandler = [&](bool toggle)
+  ButtonStateHandlerFunction buttonAHandler = [&](uint8_t state)
   {
-    webJoystickHandler.toggleCamLed(toggle);
-  };
-
-  ButtonToggleHandlerFunction buttonBHandler = [&](bool toggle)
-  {
-    webJoystickHandler.toggleFrontLights(toggle);
+    if (state == 2)
+    {
+      webJoystickHandler.frontLightsHigh();
+    }
+    else if (state == 1)
+    {
+      webJoystickHandler.frontLightsLow();
+    }
+    else
+    {
+      webJoystickHandler.frontLightsOff();
+    }
   };
 
   socketServer.init(coordsHandler,
-                    buttonAHandler,
-                    buttonBHandler);
+                    buttonAHandler);
 
   // turn on built-in board led to indicate the car is ready
-  // boardLed.turnOn();
+  boardLed.turnOn();
 }
 
 void loop()

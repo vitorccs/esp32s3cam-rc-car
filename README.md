@@ -138,7 +138,7 @@ The PINs can be customized in the `Config/src/Config.h`
 
 // Set camera model
 // #define CAMERA_MODEL_AI_THINKER
-#define CAMERA_MODEL_ESP32S3_CAM_BOARD
+#define CAMERA_FREENOVE_ESP32S3_CAM
 // #define CAMERA_MODEL_XIAO_ESP32S3
 ```
 

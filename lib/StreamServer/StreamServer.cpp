@@ -277,9 +277,8 @@ let StickStatus = { xPosition: 0, yPosition: 0, x: 0, y: 0, cardinalDirection: "
     </div>
   </div>
   <div class="buttons">
-    <button type="button" id="button-a">FLASH</button>
-    <button type="button" id="button-b">LEDs</button>
-    <button type="button" id="button-c">PHOTO</button>
+    <button type="button" id="button-a">OFF</button>
+    <button type="button" id="button-b">PHOTO</button>
   </div>
 </section>
 
@@ -426,6 +425,32 @@ class ToggleButton {
   }
 }
 
+class ThreeStatesButton {
+  static LABELS = ['OFF', 'LOW', 'HIGH'];
+
+  constructor(selector, callback) {
+    this.element = document.querySelector(selector);
+    this.callback = callback;
+    this.setValue(0);
+    this.bindEvent();
+  }
+
+  bindEvent() {
+    this.element.addEventListener('click', () => this.press());
+  }
+
+  press() {
+    this.setValue((this.value + 1) % 3);
+    this.callback(this.value);
+  }
+
+  setValue(value) {
+    this.value = value;
+    this.element.textContent = ThreeStatesButton.LABELS[value];
+    this.element.classList.toggle('pressed', value > 0);
+  }
+}
+
 class MessageSender {
   constructor(
     controllerHandler,
@@ -437,10 +462,6 @@ class MessageSender {
 
   sendButtonA(value) {
     this.socketClient.send({ 'button-a': value });
-  }
-
-  sendButtonB(value) {
-    this.socketClient.send({ 'button-b': value });
   }
 
   sendJoystick(direction, speed) {
@@ -501,7 +522,6 @@ class KeyboardController {
     controllerHandler,
     buttonA,
     buttonB,
-    buttonC,
     acceleration,
     deceleration
   ) {
@@ -509,7 +529,6 @@ class KeyboardController {
     this.controllerHandler = controllerHandler;
     this.buttonA = buttonA;
     this.buttonB = buttonB;
-    this.buttonC = buttonC;
     this.acceleration = acceleration;
     this.deceleration = deceleration;
 
@@ -553,13 +572,8 @@ class KeyboardController {
       return;
     }
 
-    if (pressed && key === 'l') {
-      this.buttonB.press();
-      return;
-    }
-
     if (pressed && key === 'p') {
-      this.buttonC.press();
+      this.buttonB.press();
       return;
     }
 
@@ -692,7 +706,6 @@ class GamepadController {
     controllerHandler,
     buttonA,
     buttonB,
-    buttonC,
     acceleration,
     deceleration
   ) {
@@ -701,7 +714,6 @@ class GamepadController {
     this.controllerHandler = controllerHandler;
     this.buttonA = buttonA;
     this.buttonB = buttonB;
-    this.buttonC = buttonC;
 
     // custom parameters
     this.acceleration = acceleration;
@@ -740,8 +752,7 @@ class GamepadController {
     this.map = {
       activation: this.buttons.start,
       buttonA: this.buttons.square,
-      buttonB: this.buttons.cross,
-      buttonC: this.buttons.triangle
+      buttonB: this.buttons.triangle
     }
 
     this.bindEvents();
@@ -797,10 +808,6 @@ class GamepadController {
 
         if (pressed && index === this.map.buttonB) {
           this.buttonB.press();
-        }
-
-        if (pressed && index === this.map.buttonC) {
-          this.buttonC.press();
         }
       }
     });
@@ -985,7 +992,7 @@ class PhotoService {
 
 window.addEventListener('load', () => {
   let host = null;
-  // host = '192.168.10.194'; // for remote debug
+  // host = '192.168.10.191'; // for remote debug
   const enableLog = true;
   const httpPort = 8000;
   const streamPort = 8001;
@@ -1009,9 +1016,8 @@ window.addEventListener('load', () => {
   );
   const messageSender = new MessageSender(controllerHandler, socketClient);
   const photoService = new PhotoService(httpPort, host);
-  const buttonA = new ToggleButton('#button-a', (value) => messageSender.sendButtonA(value));
-  const buttonB = new ToggleButton('#button-b', (value) => messageSender.sendButtonB(value));
-  const buttonC = new PushButton('#button-c', async() => await photoService.capture());
+  const buttonA = new ThreeStatesButton('#button-a', (value) => messageSender.sendButtonA(value));
+  const buttonB = new PushButton('#button-b', async() => await photoService.capture());
 
   new JoystickController(
     messageSender,
@@ -1024,7 +1030,6 @@ window.addEventListener('load', () => {
     controllerHandler,
     buttonA,
     buttonB,
-    buttonC,
     keyboardAcceleration,
     keyboardDeceleration
   );
@@ -1035,7 +1040,6 @@ window.addEventListener('load', () => {
     controllerHandler,
     buttonA,
     buttonB,
-    buttonC,
     gamepadAcceleration,
     gamepadDeceleration
   );
@@ -1080,7 +1084,7 @@ void StreamServer::init(framesize_t frameSize,
     config.fb_location = CAMERA_FB_IN_PSRAM;
     config.frame_size = frameSize;
     config.jpeg_quality = jpegQuality;
-    config.fb_count = 1;
+    config.fb_count = 2;
 
     // Camera init
     esp_err_t err = esp_camera_init(&config);

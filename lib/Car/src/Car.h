@@ -1,19 +1,15 @@
-#ifndef THECAR_H
-#define THECAR_H
+#ifndef THE_CAR_H
+#define THE_CAR_H
 #include <Arduino.h>
 #include <DCMotor.h>
-#include <DigitalLed.h>
-#include <AdafruitLed.h>
-#include <Led.h>
+#include <PwmLed.h>
 
 class Car
 {
 public:
     Car(DCMotor &m1,
         DCMotor &m2,
-        DigitalLed &fLed1,
-        DigitalLed &fLed2,
-        Led &camLed);
+        PwmLed &fLed);
     Car(const Car &other) = delete;
     Car &operator=(const Car &other) = delete;
     void backward(uint8_t speed = 100);
@@ -22,10 +18,9 @@ public:
     void forward(uint8_t speed = 100);
     void forwardLeft(uint8_t speed = 100);
     void forwardRight(uint8_t speed = 100);
-    void frontLightsOff();
-    void frontLightsOn();
-    void camLedOn();
-    void camLedOff();
+    void frontLedHigh();
+    void frontLedLow();
+    void frontLedOff();
     void setMinAbsSpeed(uint8_t absSpeed);
     void stop();
     void turn(int16_t leftSpeed, int16_t rightSpeed);
@@ -35,8 +30,6 @@ public:
 private:
     DCMotor motor1;
     DCMotor motor2;
-    DigitalLed frontLed1;
-    DigitalLed frontLed2;
-    Led *cameraLed;
+    PwmLed *frontLed;
 };
 #endif
