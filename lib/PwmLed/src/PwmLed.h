@@ -17,6 +17,8 @@ private:
   static const int pwmFreq = 5000;
   static const int pwmResolution = 8;
   static const uint8_t channel = 0;
+  static const uint8_t lowDuty = 40;  // 0 to 255
+  static const uint8_t highDuty = 255; // 0 to 255
   uint8_t pin;
 };
 

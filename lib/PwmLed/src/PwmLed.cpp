@@ -10,12 +10,12 @@ PwmLed::PwmLed(uint8_t pin)
 
 void PwmLed::turnHigh()
 {
-  setDutyCycle(255);
+  setDutyCycle(highDuty);
 }
 
 void PwmLed::turnLow()
 {
-  setDutyCycle(50);
+  setDutyCycle(lowDuty);
 }
 
 void PwmLed::turnOff()

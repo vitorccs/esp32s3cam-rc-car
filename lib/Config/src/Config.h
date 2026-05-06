@@ -1,6 +1,6 @@
 // WiFi credentials
-#define WIFI_SSID "Athena"
-#define WIFI_PWD "washington"
+#define WIFI_SSID "YOUR_SSID"
+#define WIFI_PWD "YOUR_PASSWORD"
 
 // Access Point mode
 // + true = creates a WiFi network without internet connection
