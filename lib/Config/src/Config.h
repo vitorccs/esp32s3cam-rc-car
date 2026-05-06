@@ -1,11 +1,11 @@
 // WiFi credentials
 #define WIFI_SSID "YOUR_SSID"
-#define WIFI_PWD "YOUR_PASSWORD"
+#define WIFI_PWD "YOUR_PWD"
 
 // Access Point mode
 // + true = creates a WiFi network without internet connection
 // + false = connect to an existing WiFi with internet connection
-#define WIFI_AP_MODE false
+#define WIFI_AP_MODE true
 
 // Set minimum motor speed (0 to 255)
 #define MIN_MOTOR_SPEED 80
