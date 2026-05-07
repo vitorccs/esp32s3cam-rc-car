@@ -1,21 +1,23 @@
-#ifndef ADAFRUITLED_H
-#define ADAFRUITLED_H
+#ifndef ADAFRUIT_LED_H
+#define ADAFRUIT_LED_H
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
-#include <Led.h>
 
-class AdafruitLed : public Led
+class AdafruitLed
 {
 public:
   boolean state = false;
-  uint8_t red = 255, green = 255, blue = 255; 
+  uint8_t red = 255, green = 255, blue = 255;
+  uint8_t brightness = 255;
 
   AdafruitLed(uint8_t pin);
   void init();
-  void turnOn() override;
-  void turnOff() override;
-  void setState(uint8_t state) override;
+  void turnOn();
+  void turnOff();
+  void setState(uint8_t state);
   void setColor(uint8_t red, uint8_t green, uint8_t blue);
+  void setGreen();
+  void setLowBrightness();
 
 private:
   uint8_t pin;

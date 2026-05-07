@@ -1,5 +1,5 @@
-#ifndef WEBJOYSTICKHANDLER_H
-#define WEBJOYSTICKHANDLER_H
+#ifndef WEB_JOYSTICK_HANDLER_H
+#define WEB_JOYSTICK_HANDLER_H
 #include <Arduino.h>
 #include <Car.h>
 #include <JoyCoords.h>
@@ -8,8 +8,9 @@ class WebJoystickHandler {
 public:
     WebJoystickHandler(Car &car);
     void handle(JoyCoords coords);
-    void toggleFrontLights(bool enable);
-    void toggleCamLed(bool enable);
+    void frontLightsHigh();
+    void frontLightsLow();
+    void frontLightsOff();
     void setDebug(bool enable);
 private:
     Car &_car;

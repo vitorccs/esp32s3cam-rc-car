@@ -1,7 +1,7 @@
 #ifndef CAMERA_PINS_H
 #define CAMERA_PINS_H
 
-#if defined(CAMERA_MODEL_ESP32S3_CAM_BOARD)
+#if defined(CAMERA_FREENOVE_ESP32S3_CAM)
 
 #define PWDN_GPIO_NUM     -1
 #define RESET_GPIO_NUM    -1
