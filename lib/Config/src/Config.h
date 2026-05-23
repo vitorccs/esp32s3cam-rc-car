@@ -3,7 +3,8 @@
 #define WIFI_PWD "YOUR_PWD"
 
 // Access Point mode
-// + true = creates a WiFi network without internet connection
+// + true = creates a WiFi network without internet connection 
+// the car IP will be always 192.168.4.1:8000
 // + false = connect to an existing WiFi with internet connection
 #define WIFI_AP_MODE true
 
@@ -20,7 +21,7 @@
 
 // Set JPEG quality (0 to 63 - lower means higher quality)
 // NOTE: Higher image quality reduces CPU usage for compression.
-#define JPEG_QUALITY 12
+#define JPEG_QUALITY 15
 
 // Customize PINS
 #if defined(CAMERA_FREENOVE_ESP32S3_CAM)
