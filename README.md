@@ -42,6 +42,7 @@ To use the keyboard, press the `Enter` key at any time. Press it again to switch
 + Reverse: `S` or `↓`
 + Camera: `P` or `C`
 + Front LEDs: `L` or `F`
++ Max speed: from `1` (10) to `0` (100)
 
 <img src="https://github.com/user-attachments/assets/50c9a7cd-da9c-40cc-8e1c-d85b99e771db" />
 
