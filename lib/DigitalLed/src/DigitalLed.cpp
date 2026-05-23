@@ -9,12 +9,31 @@ DigitalLed::DigitalLed(uint8_t pin)
 
 void DigitalLed::turnOn()
 {
-  setState(HIGH);
+  if (inverted)
+  {
+    setState(LOW);
+  }
+  else
+  {
+    setState(HIGH);
+  }
 }
 
 void DigitalLed::turnOff()
 {
-  setState(LOW);
+   if (inverted)
+  {
+    setState(HIGH);
+  }
+  else
+  {
+    setState(LOW);
+  }
+}
+
+void DigitalLed::setInverted(bool inverted)
+{
+  this->inverted = inverted;
 }
 
 void DigitalLed::setState(uint8_t state)

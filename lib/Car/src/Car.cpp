@@ -2,21 +2,15 @@
 #define CAR_H
 #include <Arduino.h>
 #include <DCMotor.h>
-#include <DigitalLed.h>
-#include <AdafruitLed.h>
+#include <PwmLed.h>
 #include <Car.h>
 
 Car::Car(DCMotor &m1,
          DCMotor &m2,
-         DigitalLed &fLed1,
-         DigitalLed &fLed2,
-         Led &camLed) : motor1(m1),
+         PwmLed &fLed) : motor1(m1),
                          motor2(m2),
-                         frontLed1(fLed1),
-                         frontLed2(fLed2),
-                         cameraLed(&camLed)
+                         frontLed(&fLed)
 {
-    
 }
 
 void Car::backward(uint8_t speed)
@@ -82,28 +76,19 @@ void Car::turnRight(uint8_t speed)
     this->turn(0, speed);
 }
 
-void Car::frontLightsOff()
+void Car::frontLedOff()
 {
-    this->frontLed1.turnOff();
-    this->frontLed2.turnOff();
+    this->frontLed->turnOff();
 }
 
-void Car::frontLightsOn()
+void Car::frontLedLow()
 {
-    this->frontLed1.turnOn();
-    this->frontLed2.turnOn();
+    this->frontLed->turnLow();
 }
 
-void Car::camLedOff()
+void Car::frontLedHigh()
 {
-    if (this->cameraLed)
-        this->cameraLed->turnOff();
-}
-
-void Car::camLedOn()
-{
-    if (this->cameraLed)
-        this->cameraLed->turnOn();
+    this->frontLed->turnHigh();
 }
 
 void Car::setMinAbsSpeed(uint8_t absSpeed)

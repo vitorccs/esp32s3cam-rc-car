@@ -6,7 +6,6 @@
 SocketServer::SocketServer() : webSocket(8002)
 {
     ALIAS_BUTTON_A = "button-a";
-    ALIAS_BUTTON_B = "button-b";
     ALIAS_DIRECTION = "direction";
     ALIAS_SPEED = "speed";
 
@@ -48,12 +47,10 @@ void SocketServer::onEvent(uint8_t num,
 }
 
 void SocketServer::init(CoordsHandlerFunction coordsHandler,
-                        ButtonToggleHandlerFunction btnAHandler,
-                        ButtonToggleHandlerFunction btbBHandler)
+                        ButtonStateHandlerFunction btnAHandler)
 {
     _coordsHandler = coordsHandler;
     buttonAHandler = btnAHandler;
-    buttonBHandler = btbBHandler;
 
     webSocket.begin();
 }
@@ -63,8 +60,7 @@ void SocketServer::handleWebSocketMessage(char *dataChar)
     const bool isMovCoords = strstr(dataChar, ALIAS_SPEED) != nullptr &&
                              strstr(dataChar, ALIAS_DIRECTION) != nullptr;
     const bool isButtonA = strstr(dataChar, ALIAS_BUTTON_A) != nullptr;
-    const bool isButtonB = strstr(dataChar, ALIAS_BUTTON_B) != nullptr;
-    
+
     if (isMovCoords)
     {
         // parse string as a two-members JSON
@@ -86,7 +82,7 @@ void SocketServer::handleWebSocketMessage(char *dataChar)
         return;
     }
 
-    if (isButtonA || isButtonB)
+    if (isButtonA)
     {
         const int jsonSize = JSON_OBJECT_SIZE(1);
         StaticJsonDocument<jsonSize> json;
@@ -97,16 +93,9 @@ void SocketServer::handleWebSocketMessage(char *dataChar)
             return;
         }
 
-        if (isButtonA) {
-            const bool enabled = json[ALIAS_BUTTON_A];
-            buttonAHandler(enabled);
-        }
+        const uint8_t state = json[ALIAS_BUTTON_A];
+        buttonAHandler(state);
 
-        if (isButtonB) {
-            const bool enabled = json[ALIAS_BUTTON_B];
-            buttonBHandler(enabled);
-        }
-        
         return;
     }
 }

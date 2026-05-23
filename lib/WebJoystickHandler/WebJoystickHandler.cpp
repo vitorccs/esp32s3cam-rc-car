@@ -77,28 +77,19 @@ void WebJoystickHandler::handle(JoyCoords coords)
     this->_car.stop();
 }
 
-void WebJoystickHandler::toggleFrontLights(bool enable)
+void WebJoystickHandler::frontLightsHigh()
 {
-    if (enable)
-    {
-        this->_car.frontLightsOn();
-    }
-    else
-    {
-        this->_car.frontLightsOff();
-    }
+    this->_car.frontLedHigh();
 }
 
-void WebJoystickHandler::toggleCamLed(bool enable)
+void WebJoystickHandler::frontLightsLow()
 {
-    if (enable)
-    {
-        this->_car.camLedOn();
-    }
-    else
-    {
-        this->_car.camLedOff();
-    }
+    this->_car.frontLedLow();
+}
+
+void WebJoystickHandler::frontLightsOff()
+{
+    this->_car.frontLedOff();
 }
 
 void WebJoystickHandler::debugMovement(JoyCoords coords,

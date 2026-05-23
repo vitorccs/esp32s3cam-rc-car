@@ -49,10 +49,11 @@ body {
 }
 
 button {
+  display: flex;
   background: radial-gradient(ellipse at center, #444 0%, #222 100%);
   border: 1px solid #222;
   color: #fff;
-  padding: 1rem clamp(1rem, 6vh, 3rem);
+  padding: .8rem 4rem;
   font-size: clamp(1rem, 2.5vw, 2rem);
   border-radius: .4rem;
   user-select: none;
@@ -61,6 +62,11 @@ button {
 button.pressed {
   background: #444;
   box-shadow: inset 3px 1px 7px 4px #222;
+}
+
+button svg {
+  width: 3rem;
+  height: 3rem;
 }
 
 /* debug */
@@ -183,12 +189,6 @@ button.pressed {
   color: #222;
 }
 
-@media (min-height: 750px) {
-  .container .buttons {
-    flex-direction: column;
-  }
-}
-
 @media (min-width: 650px) {
   .container {
     align-items: center;
@@ -277,9 +277,13 @@ let StickStatus = { xPosition: 0, yPosition: 0, x: 0, y: 0, cardinalDirection: "
     </div>
   </div>
   <div class="buttons">
-    <button type="button" id="button-a">FLASH</button>
-    <button type="button" id="button-b">LEDs</button>
-    <button type="button" id="button-c">PHOTO</button>
+    <button type="button" id="button-a"></button>
+    <button type="button" id="button-b">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/>
+        <circle cx="12" cy="13" r="3"/>
+      </svg>
+    </button>
   </div>
 </section>
 
@@ -426,6 +430,55 @@ class ToggleButton {
   }
 }
 
+class ThreeStatesButton {
+  static LABELS = [
+    /* OFF */
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M16.8 11.2c.8-.9 1.2-2 1.2-3.2a6 6 0 0 0-9.3-5"/>
+      <path d="m2 2 20 20"/>
+      <path d="M6.3 6.3a4.67 4.67 0 0 0 1.2 5.2c.7.7 1.3 1.5 1.5 2.5"/>
+      <path d="M9 18h6"/>
+      <path d="M10 22h4"/>
+     </svg>`,
+    /* LOW */
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/>
+      <path d="m9 18h6"/>
+      <path d="m10 22h4"/>
+      <path d="m10.439 10.761v-5.728h0.776v4.984h2.72v0.744z" fill="currentColor" stroke="currentColor" stroke-width=".5"/>
+    </svg>`,
+    /* HIGH */
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/>
+      <path d="m9 18h6"/>
+      <path d="m10 22h4"/>
+      <path d="m9.6701 10.701v-5.728h0.984v5.728zm0.544-2.464v-0.928h3.384v0.928zm2.984 2.464v-5.728h0.976v5.728z" fill="currentColor" stroke="currentColor" stroke-width=".2"/>
+    </svg>`,
+  ];
+
+  constructor(selector, callback) {
+    this.element = document.querySelector(selector);
+    this.callback = callback;
+    this.setValue(0);
+    this.bindEvent();
+  }
+
+  bindEvent() {
+    this.element.addEventListener('click', () => this.press());
+  }
+
+  press() {
+    this.setValue((this.value + 1) % 3);
+    this.callback(this.value);
+  }
+
+  setValue(value) {
+    this.value = value;
+    this.element.innerHTML = ThreeStatesButton.LABELS[value];
+    this.element.classList.toggle('pressed', value > 0);
+  }
+}
+
 class MessageSender {
   constructor(
     controllerHandler,
@@ -437,10 +490,6 @@ class MessageSender {
 
   sendButtonA(value) {
     this.socketClient.send({ 'button-a': value });
-  }
-
-  sendButtonB(value) {
-    this.socketClient.send({ 'button-b': value });
   }
 
   sendJoystick(direction, speed) {
@@ -501,7 +550,6 @@ class KeyboardController {
     controllerHandler,
     buttonA,
     buttonB,
-    buttonC,
     acceleration,
     deceleration
   ) {
@@ -509,7 +557,6 @@ class KeyboardController {
     this.controllerHandler = controllerHandler;
     this.buttonA = buttonA;
     this.buttonB = buttonB;
-    this.buttonC = buttonC;
     this.acceleration = acceleration;
     this.deceleration = deceleration;
 
@@ -548,18 +595,13 @@ class KeyboardController {
       return;
     }
 
-    if (pressed && key === 'f') {
+    if (pressed && ['l', 'f'].includes(key)) {
       this.buttonA.press();
       return;
     }
 
-    if (pressed && key === 'l') {
+    if (pressed && ['c', 'p'].includes(key)) {
       this.buttonB.press();
-      return;
-    }
-
-    if (pressed && key === 'p') {
-      this.buttonC.press();
       return;
     }
 
@@ -692,7 +734,6 @@ class GamepadController {
     controllerHandler,
     buttonA,
     buttonB,
-    buttonC,
     acceleration,
     deceleration
   ) {
@@ -701,7 +742,6 @@ class GamepadController {
     this.controllerHandler = controllerHandler;
     this.buttonA = buttonA;
     this.buttonB = buttonB;
-    this.buttonC = buttonC;
 
     // custom parameters
     this.acceleration = acceleration;
@@ -740,8 +780,7 @@ class GamepadController {
     this.map = {
       activation: this.buttons.start,
       buttonA: this.buttons.square,
-      buttonB: this.buttons.cross,
-      buttonC: this.buttons.triangle
+      buttonB: this.buttons.triangle
     }
 
     this.bindEvents();
@@ -797,10 +836,6 @@ class GamepadController {
 
         if (pressed && index === this.map.buttonB) {
           this.buttonB.press();
-        }
-
-        if (pressed && index === this.map.buttonC) {
-          this.buttonC.press();
         }
       }
     });
@@ -964,7 +999,6 @@ class ControllerHandler {
 }
 
 class PhotoService {
-
   constructor(
     port,
     host = null
@@ -985,7 +1019,7 @@ class PhotoService {
 
 window.addEventListener('load', () => {
   let host = null;
-  // host = '192.168.10.194'; // for remote debug
+  // host = '192.168.10.191'; // for remote debug
   const enableLog = true;
   const httpPort = 8000;
   const streamPort = 8001;
@@ -1009,9 +1043,8 @@ window.addEventListener('load', () => {
   );
   const messageSender = new MessageSender(controllerHandler, socketClient);
   const photoService = new PhotoService(httpPort, host);
-  const buttonA = new ToggleButton('#button-a', (value) => messageSender.sendButtonA(value));
-  const buttonB = new ToggleButton('#button-b', (value) => messageSender.sendButtonB(value));
-  const buttonC = new PushButton('#button-c', async() => await photoService.capture());
+  const buttonA = new ThreeStatesButton('#button-a', (value) => messageSender.sendButtonA(value));
+  const buttonB = new PushButton('#button-b', async() => await photoService.capture());
 
   new JoystickController(
     messageSender,
@@ -1024,7 +1057,6 @@ window.addEventListener('load', () => {
     controllerHandler,
     buttonA,
     buttonB,
-    buttonC,
     keyboardAcceleration,
     keyboardDeceleration
   );
@@ -1035,7 +1067,6 @@ window.addEventListener('load', () => {
     controllerHandler,
     buttonA,
     buttonB,
-    buttonC,
     gamepadAcceleration,
     gamepadDeceleration
   );
@@ -1074,13 +1105,13 @@ void StreamServer::init(framesize_t frameSize,
     config.pin_sccb_scl = SIOC_GPIO_NUM;
     config.pin_pwdn = PWDN_GPIO_NUM;
     config.pin_reset = RESET_GPIO_NUM;
-    config.xclk_freq_hz = 20000000;
+    config.xclk_freq_hz = 18000000;
     config.pixel_format = PIXFORMAT_JPEG;
     config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
     config.fb_location = CAMERA_FB_IN_PSRAM;
     config.frame_size = frameSize;
     config.jpeg_quality = jpegQuality;
-    config.fb_count = 1;
+    config.fb_count = 2;
 
     // Camera init
     esp_err_t err = esp_camera_init(&config);
