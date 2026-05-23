@@ -10,13 +10,13 @@ A remote-controlled car built on an ESP32-S3-based platform that can be controll
 ## Recordings
 Note: enable the sound by clicking on the speaker icon from the video toolbar.
 
-https://github.com/user-attachments/assets/f941ac1c-32bb-405a-ad6e-40529a32f8a9
-
-https://github.com/user-attachments/assets/c7326e6f-baf5-430e-8a99-d2c3559c9cec
-
 https://github.com/user-attachments/assets/5d8425a9-dce1-491e-ae34-59c03d8f86cc
 
 https://github.com/user-attachments/assets/93f607e6-d4dc-4531-a36e-d2092cfb8768
+
+https://github.com/user-attachments/assets/c7326e6f-baf5-430e-8a99-d2c3559c9cec
+
+https://github.com/user-attachments/assets/f941ac1c-32bb-405a-ad6e-40529a32f8a9
 
 ## Description
 This project is the successor to the [ESP32CAM-RC-Car project](https://github.com/vitorccs/esp32cam-rc-car), which was based on a previous-generation ESP32 board.
