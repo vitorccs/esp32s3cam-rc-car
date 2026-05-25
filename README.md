@@ -3,6 +3,8 @@ A remote-controlled car built on an ESP32-S3-based platform that can be controll
 
 It also features front headlights with high and low beam modes and can capture photos.
 
+Also published at [https://www.instructables.com/ESP32S3-CAM-RC-Car/](https://www.instructables.com/ESP32S3-CAM-RC-Car/).
+
 <img width="380"  src="https://github.com/user-attachments/assets/9c87027a-5927-40b4-9232-bff47f240cf2" />
 <img width="380" src="https://github.com/user-attachments/assets/b1e3027e-ce6b-45fb-86c2-441278e4adde" />
 <img width="380" src="https://github.com/user-attachments/assets/1b35ae77-7d77-4a7a-8023-47e0785e5f5a" />
