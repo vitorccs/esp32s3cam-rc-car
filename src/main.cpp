@@ -51,7 +51,10 @@ void setup()
   car.stop();
   car.setMinAbsSpeed(MIN_MOTOR_SPEED);
 
-  streamServer.init(FRAME_SIZE, JPEG_QUALITY);
+  streamServer.init(
+      FRAME_SIZE,
+      JPEG_QUALITY,
+      INCREASE_FPS);
 
   // Wi-Fi connection
   if (WIFI_AP_MODE)

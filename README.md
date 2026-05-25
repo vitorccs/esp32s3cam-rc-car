@@ -1,6 +1,8 @@
 # ESP32S3-CAM RC Car
 A remote-controlled car built on an ESP32-S3-based platform that can be controlled by mouse, keyboard or a gamepad!
 
+It also features front headlights with high and low beam modes and can capture photos.
+
 <img width="380"  src="https://github.com/user-attachments/assets/9c87027a-5927-40b4-9232-bff47f240cf2" />
 <img width="380" src="https://github.com/user-attachments/assets/b1e3027e-ce6b-45fb-86c2-441278e4adde" />
 <img width="380" src="https://github.com/user-attachments/assets/1b35ae77-7d77-4a7a-8023-47e0785e5f5a" />
@@ -12,7 +14,7 @@ Note: enable the sound by clicking on the speaker icon from the video toolbar.
 
 https://github.com/user-attachments/assets/5d8425a9-dce1-491e-ae34-59c03d8f86cc
 
-https://github.com/user-attachments/assets/93f607e6-d4dc-4531-a36e-d2092cfb8768
+https://github.com/user-attachments/assets/d4d6b7d5-77e2-4f4a-8a79-1368959aa9ee
 
 https://github.com/user-attachments/assets/c7326e6f-baf5-430e-8a99-d2c3559c9cec
 
@@ -68,31 +70,52 @@ If you are familiar with configuring internet routers and setting port forwardin
 3) If your ISP changes your public IP frequently, set up a DDNS service (e.g., No-IP)
 
 ## Compatible boards
-### Freenove ESP32S3-CAM
-This board is more affordable than "XIAO ESP32-S3" board and has higher-quality assembly and soldering than "AI Thinker style" board below.
+### Freenove ESP32S3-CAM (Recommended)
+This board is affordable and offers excellent build quality. It also provides a large number of GPIO pins.
 
-Also, it has a built-in USB programmer so you don't need an external USB programmer to flash it.
+Additionally, it features a built-in USB programmer, so you do not need an external USB programmer to flash it.
 
-In the PIO Arduino, use the env "esp32s3cam".
+Instructions:
++ At `Config.h`, uncomment `CAMERA_FREENOVE_ESP32S3_CAM`
++ In the PIO Arduino, use the env `esp32s3cam`.
+
 
 <img src="https://github.com/user-attachments/assets/40393a1c-cbb9-4f6d-8d1a-0267f5819d62" width="330"/>
 
+### Seeed Studio XIAO ESP32-S3 Series
+This very compact board offers excellent build quality, although it is more expensive. Another advantage is the connector for an external antenna and the built-in USB programmer. It is recommended to use its heat sinks due to the heat generated during streaming.
 
-### ESP32S3-CAM ("AI Thinker" style)
-The "ESP32S3-CAM" board succeeds the "AI Thinker" board, which was based on the older ESP32. This board can be found at [AliExpress](http://aliexpress.com/w/wholesale-esp32s3cam.html). 
+Instructions:
++ At `Config.h`, uncomment `CAMERA_MODEL_XIAO_ESP32S3`
++ In the PIO Arduino, use the env `xiaoS3cam`.
 
-NOTE: there are slightly different models and they may have different GPIO numbers. The project was based on this model. There is also an RGB LED in the position which used to be a bright FLASH LED.
 
-In the PIO Arduino, use the env "esp32s3cam". If you want to use the previous model "AI Thinker" (ESP32-S), use "ai_tinker".
+<img src="https://github.com/user-attachments/assets/08a81881-be41-45f0-be26-7417dd8f78cb" width="330"/>
+
+### ESP32S3-CAM ("AI Thinker v2")
+This board is commonly sold as **ESP32S3-CAM** on some Chinese e-commerce websites and is considered the unofficial successor to the **ESP32-CAM AI Thinker** board. It can be found on AliExpress.
+
+NOTE: There are slightly different versions of this board, and they may use different GPIO assignments. Additionally, the bright FLASH LED found on the original board has been replaced by an RGB LED on some models.
+
+Instructions:
++ At `Config.h`, uncomment `CAMERA_MODEL_AI_THINKER_V2`
++ In the PIO Arduino, use the env `esp32s3cam`.
+
 
 <img src="https://github.com/user-attachments/assets/d590d683-830d-4006-8bae-eb9d859a37c2" width="330"/>
 
-### Seeed Studio XIAO ESP32-S3 Series
-It works perfectly in this project. It is more expensive but it is very compact and an externall antenna can be easily attached. 
+### ESP32-CAM ("AI Thinker v1")
+This is the original **ESP32-CAM AI-Thinker** board, featuring the older **ESP32-S** series processor. You may occasionally experience brief streaming lag, but it is still a great choice for this project.
 
-In the PIO Arduino, use the env "xiaoS3cam".
+NOTE: This board includes a built-in high-brightness flash LED connected to GPIO 4. It will not be used in this project, as the front LEDs are intended to replace it. The front LEDs provide brighter illumination and better electrical isolation, helping to avoid interference with the video stream.
 
-<img src="https://github.com/user-attachments/assets/08a81881-be41-45f0-be26-7417dd8f78cb" width="330"/>
+
+Instructions:
++ At `Config.h`, uncomment `CAMERA_MODEL_AI_THINKER`
++ In the PIO Arduino, use the env `ai_tinker`.
+
+<img width="330" src="https://github.com/user-attachments/assets/b6dc4bcf-6287-4f38-b28e-0c4f193c7aca" />
+
 
 ## Schematics
 
@@ -120,7 +143,7 @@ The cost was about 2 USD on [EasyEDA](https://easyeda.com/), with shipping costs
 * 01 - ESP32S3-CAM board
 * 01 - Car Chassis (2WD or 4WD)
 * 02 - DC Motors (3v - 6v)
-* 02 - [High Brightness White Leds (5v, 1 Watt)](https://pt.aliexpress.com/w/wholesale-led-5v-1w-star.html)
+* 02 - [High Brightness Star White Leds (5v, 1 Watt)](https://pt.aliexpress.com/w/wholesale-led-5v-1w-star.html)
 * 02 - 18650 batteries (3.7v - 4.2v)
 * 01 - Battery support
 * 01 - [MOSFET module (LR7843 or AOD4184)](https://pt.aliexpress.com/w/wholesale-mosfet-module.html)
@@ -149,10 +172,18 @@ The parameters and PINs can be set in the file `Config/src/Config.h`
 #define WIFI_SSID "YOUR_SSID"
 #define WIFI_PWD "YOUR_PASSWORD"
 
-// Access Point mode 
-// + true = creates a WiFi network without internet connection
+// Access Point mode
+// + true = creates a WiFi network without internet connection 
+// the car IP will always be http://192.168.4.1:8000
 // + false = connect to an existing WiFi with internet connection
-#define WIFI_AP_MODE false
+// the car IP will be assigned by the router http://X.X.X.X:8000
+#define WIFI_AP_MODE true
+
+// Set minimum motor speed (0 to 255)
+#define MIN_MOTOR_SPEED 80
+
+// Enable debug (prints car speed and direction in the serial)
+#define JOYSTICK_DEBUG false
 
 // Set camera model
 #define CAMERA_FREENOVE_ESP32S3_CAM
@@ -161,7 +192,11 @@ The parameters and PINs can be set in the file `Config/src/Config.h`
 
 // Set JPEG quality (0 to 63 - lower means higher quality)
 // NOTE: Higher image quality reduces CPU usage for compression.
-#define JPEG_QUALITY 12
+#define JPEG_QUALITY 15
+
+// Improve FPS by using double buffering (usually works perfectly
+// for ESP32S3 family)
+#define INCREASE_FPS true
 
 // Customize PINS
 #if defined(CAMERA_FREENOVE_ESP32S3_CAM)
@@ -181,6 +216,16 @@ The parameters and PINs can be set in the file `Config/src/Config.h`
 #define PIN_M2_IN2 4
 #define PIN_FRONT_LED 9
 #define PIN_BOARD_LED 7
+// NOTE: higher resolutions affect framerate
+#define FRAME_SIZE FRAMESIZE_VGA
+
+#elif defined(CAMERA_MODEL_AI_THINKER_V2)
+#define PIN_M1_IN1 14
+#define PIN_M1_IN2 47
+#define PIN_M2_IN1 38
+#define PIN_M2_IN2 39
+#define PIN_FRONT_LED 40
+#define PIN_RGB_LED 48
 // NOTE: higher resolutions affect framerate
 #define FRAME_SIZE FRAMESIZE_VGA
 

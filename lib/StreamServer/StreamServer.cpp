@@ -1084,7 +1084,8 @@ window.addEventListener('load', () => {
 )rawliteral";
 
 void StreamServer::init(framesize_t frameSize,
-                        int jpegQuality)
+                        int jpegQuality,
+                        bool increaseFps)
 {
     camera_config_t config;
     config.ledc_channel = LEDC_CHANNEL_0;
@@ -1111,7 +1112,12 @@ void StreamServer::init(framesize_t frameSize,
     config.fb_location = CAMERA_FB_IN_PSRAM;
     config.frame_size = frameSize;
     config.jpeg_quality = jpegQuality;
-    config.fb_count = 2;
+    config.fb_count = 1;
+
+    if (increaseFps) {
+        config.grab_mode = CAMERA_GRAB_LATEST;
+        config.fb_count = 2;
+    }
 
     // Camera init
     esp_err_t err = esp_camera_init(&config);
