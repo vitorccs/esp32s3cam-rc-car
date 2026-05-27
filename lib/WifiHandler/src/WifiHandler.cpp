@@ -26,6 +26,8 @@ void WifiHandler::apMode(const char *ssid,
 {
     WiFi.softAP(ssid, pwd, channel);
 
+    WiFi.setSleep(false);
+
     debug(WiFi, ssid, true);
 }
 

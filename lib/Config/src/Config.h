@@ -18,6 +18,7 @@
 // Set camera model
 #define CAMERA_FREENOVE_ESP32S3_CAM
 // #define CAMERA_MODEL_XIAO_ESP32S3
+// #define CAMERA_MODEL_AI_THINKER_V2
 // #define CAMERA_MODEL_AI_THINKER
 
 // Set JPEG quality (0 to 63 - lower means higher quality)
