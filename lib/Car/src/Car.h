@@ -12,6 +12,11 @@ public:
         PwmLed &fLed);
     Car(const Car &other) = delete;
     Car &operator=(const Car &other) = delete;
+
+    // Must be called from setup(), AFTER the camera has been initialized,
+    // so the LEDC channels are not clobbered by esp_camera_init().
+    void init();
+
     void backward(uint8_t speed = 100);
     void backwardLeft(uint8_t speed = 100);
     void backwardRight(uint8_t speed = 100);
@@ -28,8 +33,8 @@ public:
     void turnRight(uint8_t speed = 100);
 
 private:
-    DCMotor motor1;
-    DCMotor motor2;
-    PwmLed *frontLed;
+    DCMotor &motor1;
+    DCMotor &motor2;
+    PwmLed &frontLed;
 };
 #endif

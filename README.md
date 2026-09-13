@@ -71,6 +71,11 @@ If you are familiar with configuring internet routers and setting port forwardin
 * 8002 (WebSocket / joystick commands).
 3) If your ISP changes your public IP frequently, set up a DDNS service (e.g., No-IP)
 
+> **Security warning:** none of the three servers has authentication or origin
+> checks. Forwarding these ports makes the camera stream and the motor controls
+> reachable by anyone who finds your IP. Prefer a VPN back into your home network,
+> or restrict the forwarding rules to known source addresses.
+
 ## Compatible boards
 ### Freenove ESP32S3-CAM (Recommended)
 This board is affordable and offers excellent build quality. It also provides a large number of GPIO pins.
@@ -169,6 +174,12 @@ Compared to the official Arduino IDE, this setup offers better dependency manage
 
 ## About the code
 The parameters and PINs can be set in the file `Config/src/Config.h`
+
+> `Config.h` is tracked by git, so your real WiFi credentials would be committed.
+> To keep your local edits out of commits, run once:
+> `git update-index --skip-worktree lib/Config/src/Config.h`
+> (undo it with `--no-skip-worktree` when you need to change the file upstream).
+
 ```c++
 // WiFi credentials
 #define WIFI_SSID "YOUR_SSID"
@@ -183,6 +194,9 @@ The parameters and PINs can be set in the file `Config/src/Config.h`
 
 // Set minimum motor speed (0 to 255)
 #define MIN_MOTOR_SPEED 80
+
+// Failsafe: stop the motors when no command is received for this long (ms)
+#define COMMAND_TIMEOUT_MS 500
 
 // Enable debug (prints car speed and direction in the serial)
 #define JOYSTICK_DEBUG false
@@ -257,23 +271,54 @@ class DCMotor
 {
 public:
     DCMotor(uint8_t pinIn1, uint8_t pinIn2);
+    void init();
     void backward(uint8_t speed = 100);
     void forward(uint8_t speed = 100);
     void setMinAbsSpeed(uint8_t absSpeed);
     void stop();
 
 private:
+    static const uint8_t firstChannel = 7;
+    static uint8_t nextChannel;
+
+    // 20 kHz is above the audible range (the analogWrite default is 1 kHz)
+    static const int pwmFreq = 20000;
+    static const int pwmResolution = 8;
+
     uint8_t pinIn1;
     uint8_t pinIn2;
+    uint8_t channelIn1 = 0;
+    uint8_t channelIn2 = 0;
+    bool initialized = false;
     uint8_t absSpeed = 0;
     uint8_t maxAbsSpeed = 255;
     uint8_t minAbsSpeed = 50;
     uint8_t ignoreAbsSpeed = 30;
 
     void setSpeed(uint8_t speed);
+    void write(uint8_t duty1, uint8_t duty2);
 };
 #endif
 ```
+
+### LEDC channel map
+The ESP32-S3 has a single LEDC speed group, so every PWM consumer shares the same
+eight channels. They are assigned as follows and must not overlap:
+
+| Channel | Timer | Used by |
+|---|---|---|
+| 0 | 0 | Camera XCLK (`esp_camera_init`) |
+| 2 | 1 | Front LED (`PwmLed`) |
+| 4, 5, 6, 7 | 2, 3 | Motors (`DCMotor`) |
+
+For this reason `car.init()` must be called **after** `streamServer.init()`: the
+camera takes over channel 0 during its own initialization.
+
+### Safety failsafe
+The motors stop automatically when the WebSocket client disconnects, or when no
+command arrives for `COMMAND_TIMEOUT_MS` (500 ms by default). The web UI sends a
+command every 50 ms, so a WiFi drop or a closed browser tab brings the car to a
+halt instead of leaving it driving at the last speed.
 ## About Car Chassis
 This project can work with a 2WD or 4WD car chassis like these ones:
 

@@ -12,61 +12,63 @@ void WebJoystickHandler::setDebug(bool enable)
     this->debug = enable;
 }
 
-void WebJoystickHandler::handle(JoyCoords coords)
+void WebJoystickHandler::handle(const JoyCoords &coords)
 {
-    const String direction = coords.direction;
-    const int16_t speed = coords.speed;
+    const char *direction = coords.direction;
 
-    if (coords.direction == "N")
+    // clamp: the speed arrives from the network and feeds uint8_t parameters
+    const uint8_t speed = (uint8_t)constrain(coords.speed, 0, 100);
+
+    if (strcmp(direction, "N") == 0)
     {
         debugMovement(coords, "Forward");
         this->_car.forward(speed);
         return;
     }
 
-    if (direction == "S")
+    if (strcmp(direction, "S") == 0)
     {
         debugMovement(coords, "Backward");
         this->_car.backward(speed);
         return;
     }
 
-    if (direction == "W")
+    if (strcmp(direction, "W") == 0)
     {
         debugMovement(coords, "Left");
-        this->_car.turn(speed, 0);
+        this->_car.turnLeft(speed);
         return;
     }
 
-    if (direction == "E")
+    if (strcmp(direction, "E") == 0)
     {
         debugMovement(coords, "Right");
-        this->_car.turn(0, speed);
+        this->_car.turnRight(speed);
         return;
     }
 
-    if (direction == "NW")
+    if (strcmp(direction, "NW") == 0)
     {
         debugMovement(coords, "Forward Left");
         this->_car.forwardLeft(speed);
         return;
     }
 
-    if (direction == "NE")
+    if (strcmp(direction, "NE") == 0)
     {
         debugMovement(coords, "Forward Right");
-        _car.forwardRight(speed);
+        this->_car.forwardRight(speed);
         return;
     }
 
-    if (direction == "SW")
+    if (strcmp(direction, "SW") == 0)
     {
         debugMovement(coords, "Backward Left");
         this->_car.backwardLeft(speed);
         return;
     }
 
-    if (direction == "SE")
+    if (strcmp(direction, "SE") == 0)
     {
         debugMovement(coords, "Backward Right");
         this->_car.backwardRight(speed);
@@ -92,17 +94,16 @@ void WebJoystickHandler::frontLightsOff()
     this->_car.frontLedOff();
 }
 
-void WebJoystickHandler::debugMovement(JoyCoords coords,
-                                       String direction)
+void WebJoystickHandler::debugMovement(const JoyCoords &coords,
+                                       const char *movement)
 {
     if (!this->debug)
     {
         return;
     }
 
-    Serial.print("(speed: ");
-    Serial.print(coords.speed);
-    Serial.print(", direction: ");
-    Serial.print(coords.direction);
-    Serial.println(") " + direction);
+    Serial.printf("(speed: %d, direction: %s) %s\n",
+                  coords.speed,
+                  coords.direction,
+                  movement);
 }

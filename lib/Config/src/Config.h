@@ -1,6 +1,6 @@
 // WiFi credentials
-#define WIFI_SSID "YOUR_SSID"
-#define WIFI_PWD "YOUR_PWD"
+#define WIFI_SSID "ESP32Car"
+#define WIFI_PWD "washington"
 
 // Access Point mode
 // + true = creates a WiFi network without internet connection 
@@ -11,6 +11,10 @@
 
 // Set minimum motor speed (0 to 255)
 #define MIN_MOTOR_SPEED 80
+
+// Failsafe: stop the motors when no command is received for this long (ms).
+// The web UI sends a command every 50 ms, so this gives a 10x margin.
+#define COMMAND_TIMEOUT_MS 500
 
 // Enable debug (prints car speed and direction in the serial)
 #define JOYSTICK_DEBUG false

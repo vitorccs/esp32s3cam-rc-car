@@ -4,8 +4,21 @@
 PwmLed::PwmLed(uint8_t pin)
 {
   this->pin = pin;
+}
+
+void PwmLed::init()
+{
+  if (this->initialized)
+  {
+    return;
+  }
+
   ledcSetup(channel, pwmFreq, pwmResolution);
-  ledcAttachPin(pin, channel);
+  ledcAttachPin(this->pin, channel);
+
+  this->initialized = true;
+
+  turnOff();
 }
 
 void PwmLed::turnHigh()
@@ -26,5 +39,11 @@ void PwmLed::turnOff()
 void PwmLed::setDutyCycle(uint8_t dutyCycle)
 {
   this->dutyCycle = dutyCycle;
+
+  if (!this->initialized)
+  {
+    return;
+  }
+
   ledcWrite(channel, this->dutyCycle);
 }
