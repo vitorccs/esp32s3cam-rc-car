@@ -173,7 +173,7 @@ The parameters and PINs can be set in the file `Config/src/Config.h`
 ```c++
 // WiFi credentials
 #define WIFI_SSID "YOUR_SSID"
-#define WIFI_PWD "YOUR_PASSWORD"
+#define WIFI_PWD "YOUR_PWD"
 
 // Access Point mode
 // + true = creates a WiFi network without internet connection 
@@ -185,11 +185,8 @@ The parameters and PINs can be set in the file `Config/src/Config.h`
 // Set minimum motor speed (0 to 255)
 #define MIN_MOTOR_SPEED 80
 
-// Motor PWM frequency (Hz). 1000 Hz keeps the torque at low speeds;
-// raising it silences the whine but weakens slow H-bridges like the L298N
-#define MOTOR_PWM_FREQ 1000
-
-// Failsafe: stop the motors when no command is received for this long (ms)
+// Failsafe: stop the motors when no command is received for this long (ms).
+// The web UI sends a command every 50 ms, so this gives a 10x margin.
 #define COMMAND_TIMEOUT_MS 500
 
 // Enable debug (prints car speed and direction in the serial)
@@ -198,6 +195,7 @@ The parameters and PINs can be set in the file `Config/src/Config.h`
 // Set camera model
 #define CAMERA_FREENOVE_ESP32S3_CAM
 // #define CAMERA_MODEL_XIAO_ESP32S3
+// #define CAMERA_MODEL_AI_THINKER_V2
 // #define CAMERA_MODEL_AI_THINKER
 
 // Set JPEG quality (0 to 63 - lower means higher quality)
@@ -205,7 +203,7 @@ The parameters and PINs can be set in the file `Config/src/Config.h`
 #define JPEG_QUALITY 15
 
 // Improve FPS by using double buffering (usually works perfectly
-// for ESP32S3 family)
+// for ESP32-S3 family)
 #define INCREASE_FPS true
 
 // Customize PINS
@@ -265,24 +263,15 @@ class DCMotor
 {
 public:
     DCMotor(uint8_t pinIn1, uint8_t pinIn2);
-    void init(uint32_t pwmFreq);
+
     void backward(uint8_t speed = 100);
     void forward(uint8_t speed = 100);
     void setMinAbsSpeed(uint8_t absSpeed);
     void stop();
 
 private:
-    static const uint8_t firstChannel = 7;
-    static uint8_t nextChannel;
-
-    static const int pwmResolution = 8;
-
-    uint32_t pwmFreq = 1000;
     uint8_t pinIn1;
     uint8_t pinIn2;
-    uint8_t channelIn1 = 0;
-    uint8_t channelIn2 = 0;
-    bool initialized = false;
     uint8_t absSpeed = 0;
     uint8_t maxAbsSpeed = 255;
     uint8_t minAbsSpeed = 50;
@@ -291,21 +280,9 @@ private:
     void setSpeed(uint8_t speed);
     void write(uint8_t duty1, uint8_t duty2);
 };
+
 #endif
 ```
-
-### LEDC channel map
-The ESP32-S3 has a single LEDC speed group, so every PWM consumer shares the same
-eight channels. They are assigned as follows and must not overlap:
-
-| Channel | Timer | Used by |
-|---|---|---|
-| 0 | 0 | Camera XCLK (`esp_camera_init`) |
-| 2 | 1 | Front LED (`PwmLed`) |
-| 4, 5, 6, 7 | 2, 3 | Motors (`DCMotor`) |
-
-For this reason `car.init()` must be called **after** `streamServer.init()`: the
-camera takes over channel 0 during its own initialization.
 
 ## About Car Chassis
 This project can work with a 2WD or 4WD car chassis like these ones:

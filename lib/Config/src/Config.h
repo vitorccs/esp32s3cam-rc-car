@@ -1,6 +1,6 @@
 // WiFi credentials
-#define WIFI_SSID "ESP32Car"
-#define WIFI_PWD "havefun"
+#define WIFI_SSID "YOUR_SSID"
+#define WIFI_PWD "YOUR_PWD"
 
 // Access Point mode
 // + true = creates a WiFi network without internet connection 

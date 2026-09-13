@@ -9,9 +9,8 @@ public:
 
   PwmLed(uint8_t pin);
 
-  // Must be called from setup(), AFTER the camera has been initialized:
-  // esp_camera_init() takes over LEDC channel 0 / timer 0 for the XCLK, so
-  // configuring this channel any earlier would be silently overwritten.
+  // Must be called AFTER the camera initialization
+    // to prevent issues with PWM channels/timers
   void init();
 
   void turnHigh();

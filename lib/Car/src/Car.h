@@ -13,8 +13,8 @@ public:
     Car(const Car &other) = delete;
     Car &operator=(const Car &other) = delete;
 
-    // Must be called from setup(), AFTER the camera has been initialized,
-    // so the front LED LEDC channel is not clobbered by esp_camera_init().
+    // Must be called AFTER the camera initialization
+    // to prevent issues with PWM channels/timers
     void init();
 
     void backward(uint8_t speed = 100);
