@@ -7,7 +7,7 @@
 class WebJoystickHandler {
 public:
     WebJoystickHandler(Car &car);
-    void handle(JoyCoords coords);
+    void handle(const JoyCoords &coords);
     void frontLightsHigh();
     void frontLightsLow();
     void frontLightsOff();
@@ -15,6 +15,6 @@ public:
 private:
     Car &_car;
     bool debug = false;
-    void debugMovement(JoyCoords coords, String direction);
+    void debugMovement(const JoyCoords &coords, const char *movement);
 };
 #endif

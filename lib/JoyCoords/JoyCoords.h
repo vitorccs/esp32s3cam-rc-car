@@ -1,12 +1,12 @@
 #ifndef JOYCOORDS_H
 #define JOYCOORDS_H
 
-#include <iostream>
+#include <Arduino.h>
 
 struct JoyCoords
 {
-    // the cardial point (C, N, NE, E, SE, S, SW, W, NW)
-    String direction;
+    // the cardinal point (C, N, NE, E, SE, S, SW, W, NW)
+    char direction[3];
 
     // the motion speed (from 0 to 100)
     int16_t speed;

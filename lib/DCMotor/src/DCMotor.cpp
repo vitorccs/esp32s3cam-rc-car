@@ -15,16 +15,14 @@ DCMotor::DCMotor(uint8_t pinIn1,
 void DCMotor::backward(uint8_t speed)
 {
     setSpeed(speed);
-    analogWrite(this->pinIn1, this->absSpeed);
-    analogWrite(this->pinIn2, 0);
+    write(this->absSpeed, 0);
 }
 
 /** Speed must be between 0 and 100 */
 void DCMotor::forward(uint8_t speed)
 {
     setSpeed(speed);
-    analogWrite(this->pinIn1, 0);
-    analogWrite(this->pinIn2, this->absSpeed);
+    write(0, this->absSpeed);
 }
 
 void DCMotor::setSpeed(uint8_t speed)
@@ -50,6 +48,11 @@ void DCMotor::setMinAbsSpeed(uint8_t absSpeed)
 void DCMotor::stop()
 {
     setSpeed(0);
-    analogWrite(this->pinIn1, 0);
-    analogWrite(this->pinIn2, 0);
+    write(0, 0);
+}
+
+void DCMotor::write(uint8_t duty1, uint8_t duty2)
+{
+    analogWrite(this->pinIn1, duty1);
+    analogWrite(this->pinIn2, duty2);
 }

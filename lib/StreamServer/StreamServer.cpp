@@ -11,7 +11,10 @@
 httpd_handle_t camera_httpd = NULL;
 httpd_handle_t stream_httpd = NULL;
 
-#define TAG 1
+// ESP_LOGx takes the tag as a const char *. It used to be `#define TAG 1`,
+// which is dereferenced as the pointer 0x1 whenever the log level is compiled in.
+static const char *TAG = "camera";
+
 #define PART_BOUNDARY "123456789000000000000987654321"
 
 static const char *_STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
@@ -336,10 +339,36 @@ class SocketClient {
     this.port = port;
     this.host = host || window.location.hostname;
     this.url = `ws://${this.host}:${this.port}`;
+    this.messageHandler = null;
+    this.reconnectTimer = null;
+    this.reconnectDelay = 1000;
+
+    this.connect();
+  }
+
+  connect() {
     this.connection = new WebSocket(this.url);
 
     this.connection.onopen = () => this.onOpen();
     this.connection.onerror = (error) => this.onError(error);
+    this.connection.onclose = () => this.onClose();
+
+    if (this.messageHandler) {
+      this.connection.onmessage = (e) => this.messageHandler(e);
+    }
+  }
+
+  onClose() {
+    if (this.reconnectTimer !== null) {
+      return;
+    }
+
+    this.logger.debug(`WebSocket closed, retrying ${this.url}`);
+
+    this.reconnectTimer = window.setTimeout(() => {
+      this.reconnectTimer = null;
+      this.connect();
+    }, this.reconnectDelay);
   }
 
   send(params) {
@@ -357,6 +386,7 @@ class SocketClient {
   }
 
   setOnMessage(handler) {
+    this.messageHandler = handler;
     this.connection.onmessage = (e) => handler(e);
   }
 
@@ -370,8 +400,9 @@ class SocketClient {
   }
 
   onError(error) {
-    const message = `WebSocket Error ${error} at ${this.url}`;
-    this.logger.fail(message);
+    // onClose fires right after and handles the retry, so this only logs:
+    // raising an alert here would pop up on every reconnect attempt
+    this.logger.debug(`WebSocket Error ${error} at ${this.url}`);
   }
 }
 
@@ -1083,11 +1114,16 @@ window.addEventListener('load', () => {
 </html>
 )rawliteral";
 
-void StreamServer::init(framesize_t frameSize,
+bool StreamServer::init(framesize_t frameSize,
                         int jpegQuality,
                         bool increaseFps)
 {
-    camera_config_t config;
+    // zero-initialized: any field left unset would otherwise hold stack garbage
+    camera_config_t config = {};
+
+    // NOTE: the camera owns LEDC channel 0 / timer 0 for the XCLK. The front
+    // LED (PwmLed) uses channel 2 and the motors use channels 4-7, so nothing
+    // else may touch channels 0 and 1.
     config.ledc_channel = LEDC_CHANNEL_0;
     config.ledc_timer = LEDC_TIMER_0;
     config.pin_d0 = Y2_GPIO_NUM;
@@ -1123,9 +1159,13 @@ void StreamServer::init(framesize_t frameSize,
     esp_err_t err = esp_camera_init(&config);
     if (err != ESP_OK)
     {
-        Serial.printf("Camera init failed with error 0x%x", err);
-        return;
+        Serial.printf("Camera init failed with error 0x%x\n", err);
+        this->cameraReady = false;
+        return false;
     }
+
+    this->cameraReady = true;
+    return true;
 }
 
 esp_err_t StreamServer::index_handler(httpd_req_t *req)
@@ -1141,10 +1181,12 @@ esp_err_t StreamServer::stream_handler(httpd_req_t *req)
     size_t jpg_buf_len = 0;
     uint8_t * jpg_buf = NULL;
     char part_buf[64];
-    static int64_t last_frame = 0;
-    if(!last_frame) {
-        last_frame = esp_timer_get_time();
-    }
+
+#ifdef STREAM_DEBUG
+    // local, not static: several clients may stream concurrently, each in its
+    // own httpd task, and a shared last_frame races between them
+    int64_t last_frame = esp_timer_get_time();
+#endif
 
     res = httpd_resp_set_type(req, _STREAM_CONTENT_TYPE);
     if(res != ESP_OK){
@@ -1176,7 +1218,7 @@ esp_err_t StreamServer::stream_handler(httpd_req_t *req)
         }
         if(res == ESP_OK){
             int hlen = snprintf(part_buf, sizeof(part_buf), _STREAM_PART, jpg_buf_len);
-            if(hlen < 0 || hlen >= sizeof(part_buf)){
+            if(hlen < 0 || (size_t)hlen >= sizeof(part_buf)){
                 ESP_LOGE(TAG, "Header truncated (%d bytes needed >= %zu buffer)",
                          hlen, sizeof(part_buf));
                 res = ESP_FAIL;
@@ -1194,17 +1236,20 @@ esp_err_t StreamServer::stream_handler(httpd_req_t *req)
         if(res != ESP_OK){
             break;
         }
+#ifdef STREAM_DEBUG
         int64_t fr_end = esp_timer_get_time();
-        int64_t frame_time = fr_end - last_frame;
+        int64_t frame_time = (fr_end - last_frame) / 1000;
         last_frame = fr_end;
-        frame_time /= 1000;
         float fps = frame_time > 0 ? 1000.0f / (float)frame_time : 0.0f;
         ESP_LOGI(TAG, "MJPG: %uKB %ums (%.1ffps)",
             (uint32_t)(jpg_buf_len/1024),
             (uint32_t)frame_time, fps);
+#endif
     }
 
-    last_frame = 0;
+    // close the chunked response, otherwise the client is left hanging
+    httpd_resp_send_chunk(req, NULL, 0);
+
     return res;
 }
 
@@ -1222,7 +1267,8 @@ esp_err_t StreamServer::capture_handler(httpd_req_t *req)
     httpd_resp_set_type(req, "image/jpeg");
 
     // force download instead of preview
-    char filename[40];
+    // 29 chars of prefix + up to 10 digits of millis() + ".jpg" + NUL
+    char filename[64];
     snprintf(filename, sizeof(filename), "attachment; filename=capture_%lu.jpg", millis());
     httpd_resp_set_hdr(req, "Content-Disposition", filename);
 
@@ -1256,8 +1302,19 @@ void StreamServer::startStream()
 
     if (httpd_start(&camera_httpd, &config) == ESP_OK)
     {
+        // the UI is always served: the car still drives without a camera
         httpd_register_uri_handler(camera_httpd, &index_uri);
-        httpd_register_uri_handler(camera_httpd, &capture_uri);
+
+        if (this->cameraReady)
+        {
+            httpd_register_uri_handler(camera_httpd, &capture_uri);
+        }
+    }
+
+    if (!this->cameraReady)
+    {
+        Serial.println("Camera unavailable - /stream and /capture disabled");
+        return;
     }
 
     config.server_port = 8001;

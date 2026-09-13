@@ -1,38 +1,75 @@
-#ifndef WIFIHANDLER_H
-#define WIFIHANDLER_H
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WifiHandler.h>
 
-void WifiHandler::connect(const char *ssid,
-                          const char *pwd)
+bool WifiHandler::beginWithFallback(const char *ssid,
+                                    const char *pwd,
+                                    bool useApMode)
 {
+    if (useApMode)
+    {
+        return apMode(ssid, pwd);
+    }
+
+    if (connect(ssid, pwd))
+    {
+        return true;
+    }
+
+    // fall back to the access point so the car stays reachable
+    Serial.println("Falling back to AP mode");
+
+    return apMode(ssid, pwd);
+}
+
+bool WifiHandler::connect(const char *ssid,
+                          const char *pwd,
+                          uint32_t timeoutMs)
+{
+    WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, pwd);
+
+    const uint32_t startedAt = millis();
 
     while (WiFi.status() != WL_CONNECTED)
     {
+        if ((millis() - startedAt) > timeoutMs)
+        {
+            Serial.printf("\nWi-Fi connection to %s timed out\n", ssid);
+            return false;
+        }
+
         delay(500);
         Serial.print(".");
     }
 
     WiFi.setSleep(false);
 
-    debug(WiFi, ssid, false);
+    debug(ssid, false);
+
+    return true;
 }
 
-void WifiHandler::apMode(const char *ssid,
+bool WifiHandler::apMode(const char *ssid,
                          const char *pwd,
                          int channel)
 {
-    WiFi.softAP(ssid, pwd, channel);
+    WiFi.mode(WIFI_AP);
+
+    if (!WiFi.softAP(ssid, pwd, channel))
+    {
+        Serial.printf("Failed to start the access point %s\n", ssid);
+        return false;
+    }
 
     WiFi.setSleep(false);
 
-    debug(WiFi, ssid, true);
+    debug(ssid, true);
+
+    return true;
 }
 
-void WifiHandler::debug(WiFiClass WiFi,
-                        const char *ssid,
+void WifiHandler::debug(const char *ssid,
                         bool apMode)
 {
     Serial.println("");
@@ -58,5 +95,3 @@ void WifiHandler::debug(WiFiClass WiFi,
         Serial.println(WiFi.localIP());
     }
 }
-
-#endif
