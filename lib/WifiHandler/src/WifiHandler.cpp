@@ -2,6 +2,26 @@
 #include <WiFi.h>
 #include <WifiHandler.h>
 
+bool WifiHandler::beginWithFallback(const char *ssid,
+                                    const char *pwd,
+                                    bool useApMode)
+{
+    if (useApMode)
+    {
+        return apMode(ssid, pwd);
+    }
+
+    if (connect(ssid, pwd))
+    {
+        return true;
+    }
+
+    // fall back to the access point so the car stays reachable
+    Serial.println("Falling back to AP mode");
+
+    return apMode(ssid, pwd);
+}
+
 bool WifiHandler::connect(const char *ssid,
                           const char *pwd,
                           uint32_t timeoutMs)

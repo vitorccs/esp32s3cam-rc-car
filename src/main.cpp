@@ -67,16 +67,7 @@ void setup()
   car.stop();
 
   // Wi-Fi connection
-  if (WIFI_AP_MODE)
-  {
-    wifiHandler.apMode(WIFI_SSID, WIFI_PWD);
-  }
-  else if (!wifiHandler.connect(WIFI_SSID, WIFI_PWD))
-  {
-    // fall back to the access point so the car stays reachable
-    Serial.println("Falling back to AP mode");
-    wifiHandler.apMode(WIFI_SSID, WIFI_PWD);
-  }
+  wifiHandler.beginWithFallback(WIFI_SSID, WIFI_PWD, WIFI_AP_MODE);
 
   // Start streaming web server
   streamServer.startStream();
