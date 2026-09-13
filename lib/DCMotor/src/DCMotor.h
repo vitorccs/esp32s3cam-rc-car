@@ -9,7 +9,8 @@ public:
 
     // Must be called from setup(), AFTER the camera has been initialized.
     // See the LEDC channel map note below.
-    void init();
+    // pwmFreq drives the torque/noise trade-off - see MOTOR_PWM_FREQ in Config.h.
+    void init(uint32_t pwmFreq);
 
     void backward(uint8_t speed = 100);
     void forward(uint8_t speed = 100);
@@ -24,11 +25,9 @@ private:
     static const uint8_t firstChannel = 7;
     static uint8_t nextChannel;
 
-    // 20 kHz is above the audible range, which removes the whine the H-bridge
-    // produced at the 1 kHz default used by analogWrite().
-    static const int pwmFreq = 20000;
     static const int pwmResolution = 8;
 
+    uint32_t pwmFreq = 1000;
     uint8_t pinIn1;
     uint8_t pinIn2;
     uint8_t channelIn1 = 0;

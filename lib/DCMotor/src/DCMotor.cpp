@@ -14,14 +14,18 @@ DCMotor::DCMotor(uint8_t pinIn1,
  * Sets up the two LEDC channels once. Previously this class relied on
  * analogWrite(), which re-runs ledcSetup() + ledcAttachPin() on every single
  * call - i.e. it reconfigured the LEDC timer four times per joystick command.
+ *
+ * analogWrite() also hardcoded 1000 Hz, which is why that is the default here:
+ * higher frequencies are quieter but cost torque on slow H-bridges.
  */
-void DCMotor::init()
+void DCMotor::init(uint32_t pwmFreq)
 {
     if (this->initialized)
     {
         return;
     }
 
+    this->pwmFreq = pwmFreq;
     this->channelIn1 = nextChannel--;
     this->channelIn2 = nextChannel--;
 

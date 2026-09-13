@@ -195,6 +195,10 @@ The parameters and PINs can be set in the file `Config/src/Config.h`
 // Set minimum motor speed (0 to 255)
 #define MIN_MOTOR_SPEED 80
 
+// Motor PWM frequency (Hz). 1000 Hz keeps the torque at low speeds;
+// raising it silences the whine but weakens slow H-bridges like the L298N
+#define MOTOR_PWM_FREQ 1000
+
 // Failsafe: stop the motors when no command is received for this long (ms)
 #define COMMAND_TIMEOUT_MS 500
 
@@ -271,7 +275,7 @@ class DCMotor
 {
 public:
     DCMotor(uint8_t pinIn1, uint8_t pinIn2);
-    void init();
+    void init(uint32_t pwmFreq);
     void backward(uint8_t speed = 100);
     void forward(uint8_t speed = 100);
     void setMinAbsSpeed(uint8_t absSpeed);
@@ -281,10 +285,9 @@ private:
     static const uint8_t firstChannel = 7;
     static uint8_t nextChannel;
 
-    // 20 kHz is above the audible range (the analogWrite default is 1 kHz)
-    static const int pwmFreq = 20000;
     static const int pwmResolution = 8;
 
+    uint32_t pwmFreq = 1000;
     uint8_t pinIn1;
     uint8_t pinIn2;
     uint8_t channelIn1 = 0;

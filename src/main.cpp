@@ -63,7 +63,7 @@ void setup()
 #endif
 
   // Set up the motor / front LED PWM channels and start stopped
-  car.init();
+  car.init(MOTOR_PWM_FREQ);
   car.setMinAbsSpeed(MIN_MOTOR_SPEED);
   car.stop();
 

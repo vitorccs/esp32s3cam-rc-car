@@ -11,10 +11,10 @@ Car::Car(DCMotor &m1,
 {
 }
 
-void Car::init()
+void Car::init(uint32_t motorPwmFreq)
 {
-    this->motor1.init();
-    this->motor2.init();
+    this->motor1.init(motorPwmFreq);
+    this->motor2.init(motorPwmFreq);
     this->frontLed.init();
 }
 
