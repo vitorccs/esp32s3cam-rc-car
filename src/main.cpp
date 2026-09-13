@@ -50,10 +50,9 @@ void setup()
 
   // Camera first: esp_camera_init() claims LEDC channel 0 / timer 0 for the
   // XCLK, so the motor and front LED channels must only be set up afterwards.
-  const bool cameraReady = streamServer.init(
-      FRAME_SIZE,
-      JPEG_QUALITY,
-      INCREASE_FPS);
+  const bool cameraReady = streamServer.init(FRAME_SIZE,
+                                             JPEG_QUALITY,
+                                             INCREASE_FPS);
 
 #if defined(PIN_RGB_LED)
   if (!cameraReady)

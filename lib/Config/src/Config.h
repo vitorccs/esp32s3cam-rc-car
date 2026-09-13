@@ -1,6 +1,6 @@
 // WiFi credentials
 #define WIFI_SSID "ESP32Car"
-#define WIFI_PWD "washington"
+#define WIFI_PWD "havefun"
 
 // Access Point mode
 // + true = creates a WiFi network without internet connection 
@@ -12,14 +12,8 @@
 // Set minimum motor speed (0 to 255)
 #define MIN_MOTOR_SPEED 80
 
-// Motor PWM frequency (Hz).
-// 1000 Hz is the value this project has always used. It makes the motors whine
-// a bit, but it is what gives them torque at low duty cycles.
-// Raising it above the audible range (~20000) silences the whine, however slow
-// H-bridges lose a large part of each cycle to switching and the car becomes
-// noticeably weaker at speeds 50-70. The L298N (Option 1 in the README) suffers
-// the most; the DRV8833 (Option 2) switches much faster and tolerates it better.
-// Only raise this if you test the low speeds on your own chassis afterwards.
+// Motor PWM frequency (Hz). 1000 Hz keeps the torque at low speeds;
+// raising it silences the whine but weakens slow H-bridges like the L298N
 #define MOTOR_PWM_FREQ 1000
 
 // Failsafe: stop the motors when no command is received for this long (ms).

@@ -71,11 +71,6 @@ If you are familiar with configuring internet routers and setting port forwardin
 * 8002 (WebSocket / joystick commands).
 3) If your ISP changes your public IP frequently, set up a DDNS service (e.g., No-IP)
 
-> **Security warning:** none of the three servers has authentication or origin
-> checks. Forwarding these ports makes the camera stream and the motor controls
-> reachable by anyone who finds your IP. Prefer a VPN back into your home network,
-> or restrict the forwarding rules to known source addresses.
-
 ## Compatible boards
 ### Freenove ESP32S3-CAM (Recommended)
 This board is affordable and offers excellent build quality. It also provides a large number of GPIO pins.
@@ -174,11 +169,6 @@ Compared to the official Arduino IDE, this setup offers better dependency manage
 
 ## About the code
 The parameters and PINs can be set in the file `Config/src/Config.h`
-
-> `Config.h` is tracked by git, so your real WiFi credentials would be committed.
-> To keep your local edits out of commits, run once:
-> `git update-index --skip-worktree lib/Config/src/Config.h`
-> (undo it with `--no-skip-worktree` when you need to change the file upstream).
 
 ```c++
 // WiFi credentials
@@ -317,11 +307,6 @@ eight channels. They are assigned as follows and must not overlap:
 For this reason `car.init()` must be called **after** `streamServer.init()`: the
 camera takes over channel 0 during its own initialization.
 
-### Safety failsafe
-The motors stop automatically when the WebSocket client disconnects, or when no
-command arrives for `COMMAND_TIMEOUT_MS` (500 ms by default). The web UI sends a
-command every 50 ms, so a WiFi drop or a closed browser tab brings the car to a
-halt instead of leaving it driving at the last speed.
 ## About Car Chassis
 This project can work with a 2WD or 4WD car chassis like these ones:
 
