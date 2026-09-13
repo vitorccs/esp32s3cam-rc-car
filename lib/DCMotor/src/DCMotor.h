@@ -6,6 +6,7 @@ class DCMotor
 {
 public:
     DCMotor(uint8_t pinIn1, uint8_t pinIn2);
+
     void backward(uint8_t speed = 100);
     void forward(uint8_t speed = 100);
     void setMinAbsSpeed(uint8_t absSpeed);
@@ -20,6 +21,7 @@ private:
     uint8_t ignoreAbsSpeed = 30;
 
     void setSpeed(uint8_t speed);
+    void write(uint8_t duty1, uint8_t duty2);
 };
 
 #endif

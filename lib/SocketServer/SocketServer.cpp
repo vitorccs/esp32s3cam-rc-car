@@ -29,6 +29,7 @@ void SocketServer::onEvent(uint8_t num,
     {
     case WStype_DISCONNECTED:
         Serial.printf("[%u] Disconnected!\n", num);
+        failsafeStop();
         break;
     case WStype_CONNECTED:
         Serial.printf("[%u] Connected!\n", num);
@@ -36,8 +37,11 @@ void SocketServer::onEvent(uint8_t num,
     case WStype_TEXT:
         handleWebSocketMessage((char *)payload);
         break;
-    case WStype_BIN:
     case WStype_ERROR:
+        Serial.printf("[%u] Error!\n", num);
+        failsafeStop();
+        break;
+    case WStype_BIN:
     case WStype_FRAGMENT_TEXT_START:
     case WStype_FRAGMENT_BIN_START:
     case WStype_FRAGMENT:
@@ -47,10 +51,15 @@ void SocketServer::onEvent(uint8_t num,
 }
 
 void SocketServer::init(CoordsHandlerFunction coordsHandler,
-                        ButtonStateHandlerFunction btnAHandler)
+                        ButtonStateHandlerFunction btnAHandler,
+                        StopHandlerFunction stopHandler,
+                        uint32_t commandTimeoutMs)
 {
     _coordsHandler = coordsHandler;
     buttonAHandler = btnAHandler;
+    _stopHandler = stopHandler;
+    _commandTimeoutMs = commandTimeoutMs;
+    _lastCommandMs = millis();
 
     webSocket.begin();
 }
@@ -70,14 +79,28 @@ void SocketServer::handleWebSocketMessage(char *dataChar)
 
         if (error)
         {
+            Serial.printf("Invalid coords payload: %s\n", error.c_str());
+            return;
+        }
+
+        const char *direction = json[ALIAS_DIRECTION].as<const char *>();
+
+        if (direction == nullptr)
+        {
             return;
         }
 
         JoyCoords coords;
         coords.speed = json[ALIAS_SPEED];
-        coords.direction = String(json[ALIAS_DIRECTION].as<const char *>());
+        strlcpy(coords.direction, direction, sizeof(coords.direction));
 
-        _coordsHandler(coords);
+        _lastCommandMs = millis();
+        _stopped = false;
+
+        if (_coordsHandler)
+        {
+            _coordsHandler(coords);
+        }
 
         return;
     }
@@ -90,11 +113,16 @@ void SocketServer::handleWebSocketMessage(char *dataChar)
 
         if (error)
         {
+            Serial.printf("Invalid button payload: %s\n", error.c_str());
             return;
         }
 
         const uint8_t state = json[ALIAS_BUTTON_A];
-        buttonAHandler(state);
+
+        if (buttonAHandler)
+        {
+            buttonAHandler(state);
+        }
 
         return;
     }
@@ -103,4 +131,28 @@ void SocketServer::handleWebSocketMessage(char *dataChar)
 void SocketServer::loop()
 {
     webSocket.loop();
+
+    // Failsafe: the UI sends a command every 50 ms, so going quiet for
+    // _commandTimeoutMs means we lost the client (WiFi drop, tab frozen).
+    // Unsigned arithmetic keeps this correct across the millis() rollover.
+    if (!_stopped && (millis() - _lastCommandMs) > _commandTimeoutMs)
+    {
+        Serial.println("Command timeout - stopping the car");
+        failsafeStop();
+    }
+}
+
+void SocketServer::failsafeStop()
+{
+    if (_stopped)
+    {
+        return;
+    }
+
+    _stopped = true;
+
+    if (_stopHandler)
+    {
+        _stopHandler();
+    }
 }

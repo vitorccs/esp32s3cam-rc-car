@@ -12,6 +12,11 @@ public:
         PwmLed &fLed);
     Car(const Car &other) = delete;
     Car &operator=(const Car &other) = delete;
+
+    // Must be called AFTER the camera initialization
+    // to prevent issues with PWM channels/timers
+    void init();
+
     void backward(uint8_t speed = 100);
     void backwardLeft(uint8_t speed = 100);
     void backwardRight(uint8_t speed = 100);
@@ -28,8 +33,8 @@ public:
     void turnRight(uint8_t speed = 100);
 
 private:
-    DCMotor motor1;
-    DCMotor motor2;
-    PwmLed *frontLed;
+    DCMotor &motor1;
+    DCMotor &motor2;
+    PwmLed &frontLed;
 };
 #endif

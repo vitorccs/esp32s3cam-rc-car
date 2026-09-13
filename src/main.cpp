@@ -9,6 +9,7 @@
 #include <Car.h>
 #include <PwmLed.h>
 #include <AdafruitLed.h>
+#include <DigitalLed.h>
 #include <sensor.h>
 #include <Config.h>
 
@@ -47,24 +48,26 @@ void setup()
   boardLed.setInverted(true); // built-in board LED is inverted
 #endif
 
-  // initialize car stopped
-  car.stop();
-  car.setMinAbsSpeed(MIN_MOTOR_SPEED);
+  // Camera first: esp_camera_init() claims LEDC channel 0 / timer 0 for the
+  // XCLK, so the motor and front LED channels must only be set up afterwards.
+  const bool cameraReady = streamServer.init(FRAME_SIZE,
+                                             JPEG_QUALITY,
+                                             INCREASE_FPS);
 
-  streamServer.init(
-      FRAME_SIZE,
-      JPEG_QUALITY,
-      INCREASE_FPS);
+#if defined(PIN_RGB_LED)
+  if (!cameraReady)
+  {
+    boardLed.setColor(255, 0, 0); // red signals a camera failure
+  }
+#endif
+
+  // Set up the front LED PWM channel and start stopped
+  car.init();
+  car.setMinAbsSpeed(MIN_MOTOR_SPEED);
+  car.stop();
 
   // Wi-Fi connection
-  if (WIFI_AP_MODE)
-  {
-    wifiHandler.apMode(WIFI_SSID, WIFI_PWD);
-  }
-  else
-  {
-    wifiHandler.connect(WIFI_SSID, WIFI_PWD);
-  }
+  wifiHandler.beginWithFallback(WIFI_SSID, WIFI_PWD, WIFI_AP_MODE);
 
   // Start streaming web server
   streamServer.startStream();
@@ -73,12 +76,12 @@ void setup()
   webJoystickHandler.setDebug(JOYSTICK_DEBUG);
 
   // Start Web Sockets
-  CoordsHandlerFunction coordsHandler = [&](JoyCoords coords)
+  CoordsHandlerFunction coordsHandler = [](const JoyCoords &coords)
   {
     webJoystickHandler.handle(coords);
   };
 
-  ButtonStateHandlerFunction buttonAHandler = [&](uint8_t state)
+  ButtonStateHandlerFunction buttonAHandler = [](uint8_t state)
   {
     if (state == 2)
     {
@@ -94,8 +97,16 @@ void setup()
     }
   };
 
+  // Failsafe: stop the motors when the client disconnects or goes quiet
+  StopHandlerFunction stopHandler = []()
+  {
+    car.stop();
+  };
+
   socketServer.init(coordsHandler,
-                    buttonAHandler);
+                    buttonAHandler,
+                    stopHandler,
+                    COMMAND_TIMEOUT_MS);
 
   // turn on built-in board led to indicate the car is ready
   boardLed.turnOn();
@@ -104,4 +115,7 @@ void setup()
 void loop()
 {
   socketServer.loop();
+
+  // yield to the httpd / LwIP tasks instead of spinning a core at 100%
+  delay(1);
 }

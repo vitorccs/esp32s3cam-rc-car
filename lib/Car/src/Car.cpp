@@ -1,5 +1,3 @@
-#ifndef CAR_H
-#define CAR_H
 #include <Arduino.h>
 #include <DCMotor.h>
 #include <PwmLed.h>
@@ -9,8 +7,13 @@ Car::Car(DCMotor &m1,
          DCMotor &m2,
          PwmLed &fLed) : motor1(m1),
                          motor2(m2),
-                         frontLed(&fLed)
+                         frontLed(fLed)
 {
+}
+
+void Car::init()
+{
+    this->frontLed.init();
 }
 
 void Car::backward(uint8_t speed)
@@ -78,17 +81,17 @@ void Car::turnRight(uint8_t speed)
 
 void Car::frontLedOff()
 {
-    this->frontLed->turnOff();
+    this->frontLed.turnOff();
 }
 
 void Car::frontLedLow()
 {
-    this->frontLed->turnLow();
+    this->frontLed.turnLow();
 }
 
 void Car::frontLedHigh()
 {
-    this->frontLed->turnHigh();
+    this->frontLed.turnHigh();
 }
 
 void Car::setMinAbsSpeed(uint8_t absSpeed)
@@ -102,5 +105,3 @@ void Car::stop()
     this->motor1.stop();
     this->motor2.stop();
 }
-
-#endif
