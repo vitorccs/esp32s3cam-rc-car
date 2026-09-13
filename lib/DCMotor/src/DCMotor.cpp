@@ -1,43 +1,14 @@
 #include <Arduino.h>
 #include <DCMotor.h>
 
-uint8_t DCMotor::nextChannel = DCMotor::firstChannel;
-
 DCMotor::DCMotor(uint8_t pinIn1,
                  uint8_t pinIn2)
 {
     this->pinIn1 = pinIn1;
     this->pinIn2 = pinIn2;
-}
 
-/**
- * Sets up the two LEDC channels once. Previously this class relied on
- * analogWrite(), which re-runs ledcSetup() + ledcAttachPin() on every single
- * call - i.e. it reconfigured the LEDC timer four times per joystick command.
- *
- * analogWrite() also hardcoded 1000 Hz, which is why that is the default here:
- * higher frequencies are quieter but cost torque on slow H-bridges.
- */
-void DCMotor::init(uint32_t pwmFreq)
-{
-    if (this->initialized)
-    {
-        return;
-    }
-
-    this->pwmFreq = pwmFreq;
-    this->channelIn1 = nextChannel--;
-    this->channelIn2 = nextChannel--;
-
-    ledcSetup(this->channelIn1, pwmFreq, pwmResolution);
-    ledcAttachPin(this->pinIn1, this->channelIn1);
-
-    ledcSetup(this->channelIn2, pwmFreq, pwmResolution);
-    ledcAttachPin(this->pinIn2, this->channelIn2);
-
-    this->initialized = true;
-
-    this->stop();
+    pinMode(this->pinIn1, OUTPUT);
+    pinMode(this->pinIn2, OUTPUT);
 }
 
 /** Speed must be between 0 and 100 */
@@ -82,11 +53,6 @@ void DCMotor::stop()
 
 void DCMotor::write(uint8_t duty1, uint8_t duty2)
 {
-    if (!this->initialized)
-    {
-        return;
-    }
-
-    ledcWrite(this->channelIn1, duty1);
-    ledcWrite(this->channelIn2, duty2);
+    analogWrite(this->pinIn1, duty1);
+    analogWrite(this->pinIn2, duty2);
 }

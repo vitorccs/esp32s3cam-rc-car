@@ -12,10 +12,6 @@
 // Set minimum motor speed (0 to 255)
 #define MIN_MOTOR_SPEED 80
 
-// Motor PWM frequency (Hz). 1000 Hz keeps the torque at low speeds;
-// raising it silences the whine but weakens slow H-bridges like the L298N
-#define MOTOR_PWM_FREQ 1000
-
 // Failsafe: stop the motors when no command is received for this long (ms).
 // The web UI sends a command every 50 ms, so this gives a 10x margin.
 #define COMMAND_TIMEOUT_MS 500
