@@ -872,7 +872,7 @@ class GamepadController {
     });
   }
 
-  // acceleration (pedal-like)
+  // acceleration (pedal-like): the trigger pressure sets the speed limit
   updateSpeed() {
     if (!this.gamepad) {
       this.speed = 0;
@@ -883,24 +883,19 @@ class GamepadController {
     const up = this.gamepad.buttons[this.buttons.r2].value;
     const down = this.gamepad.buttons[this.buttons.l2].value;
 
-    const hasUp = up > this.vDeadZone;
-    const hasDown = down > this.vDeadZone;
+    // analog triggers report 0.0-1.0 (digital ones only 0 or 1);
+    // rescale past the dead zone so the whole travel maps to 0-100%
+    const pressure = Math.max(up, down);
+    const ratio = pressure > this.vDeadZone
+      ? (pressure - this.vDeadZone) / (1 - this.vDeadZone)
+      : 0;
+    const targetSpeed = this.maxSpeed * ratio;
 
-    // accelerate if ANY movement key is pressed
-    if (hasUp || hasDown) {
-      this.speed += this.acceleration;
-
-      if (this.speed > this.maxSpeed) {
-        this.speed = this.maxSpeed;
-      }
-
+    // ramp towards the target, both when pressing and releasing
+    if (this.speed < targetSpeed) {
+      this.speed = Math.min(this.speed + this.acceleration, targetSpeed);
     } else {
-      // decelerate when no keys are pressed
-      this.speed -= this.deceleration;
-
-      if (this.speed < 0) {
-        this.speed = 0;
-      }
+      this.speed = Math.max(this.speed - this.deceleration, targetSpeed);
     }
   }
 

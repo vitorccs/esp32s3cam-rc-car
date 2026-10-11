@@ -24,12 +24,12 @@ void Car::backward(uint8_t speed)
 
 void Car::backwardLeft(uint8_t speed)
 {
-    this->turn(-1 * speed, -1 * speed * 5 / 10);
+    this->turn(-1 * speed, -1 * speed * 3 / 10);
 }
 
 void Car::backwardRight(uint8_t speed)
 {
-    this->turn(-1 * speed * 5 / 10, -1 * speed);
+    this->turn(-1 * speed * 3 / 10, -1 * speed);
 }
 
 void Car::forward(uint8_t speed)
@@ -40,12 +40,12 @@ void Car::forward(uint8_t speed)
 
 void Car::forwardLeft(uint8_t speed)
 {
-    this->turn(speed, speed * 5 / 10);
+    this->turn(speed, speed * 4 / 10);
 }
 
 void Car::forwardRight(uint8_t speed)
 {
-    this->turn(speed * 5 / 10, speed);
+    this->turn(speed * 4 / 10, speed);
 }
 
 void Car::turn(int16_t leftSpeed, int16_t rightSpeed)
