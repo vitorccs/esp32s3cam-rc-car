@@ -5,8 +5,8 @@
 class WifiHandler
 {
 public:
-    bool beginWithFallback(const char *ssid, const char *pwd, bool useApMode);
-    bool connect(const char *ssid, const char *pwd, uint32_t timeoutMs = 20000);
+    bool connect(const char *ssid, const char *pwd, bool useApMode, int apChannel = 1);
+    bool staMode(const char *ssid, const char *pwd, uint32_t timeoutMs = 20000);
     bool apMode(const char *ssid, const char *pwd, int channel = 1);
 
 private:

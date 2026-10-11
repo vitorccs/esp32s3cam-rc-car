@@ -9,6 +9,10 @@
 // the car IP will be assigned by the router http://X.X.X.X:8000
 #define WIFI_AP_MODE true
 
+// WiFi channel used in Access Point mode (1 to 13)
+// pick a less crowded channel to reduce interference and latency
+#define WIFI_AP_CHANNEL 1
+
 // Set minimum motor speed (0 to 255)
 #define MIN_MOTOR_SPEED 80
 

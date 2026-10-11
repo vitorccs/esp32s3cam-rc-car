@@ -67,7 +67,7 @@ void setup()
   car.stop();
 
   // Wi-Fi connection
-  wifiHandler.beginWithFallback(WIFI_SSID, WIFI_PWD, WIFI_AP_MODE);
+  wifiHandler.connect(WIFI_SSID, WIFI_PWD, WIFI_AP_MODE, WIFI_AP_CHANNEL);
 
   // Start streaming web server
   streamServer.startStream();
