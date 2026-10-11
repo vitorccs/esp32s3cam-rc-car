@@ -57,6 +57,7 @@ To use a USB PlayStation 3 compatible gamepad, press the `Start` button at any t
 + Left/Right: `left analog`
 + Up: `R2`
 + Reverse: `L2`
++ Max speed: on analog triggers, set by how far `R2`/`L2` is pressed (e.g. 90% pressed = 90% speed)
 + Camera: `△`
 + Front LEDs: `□`
 
