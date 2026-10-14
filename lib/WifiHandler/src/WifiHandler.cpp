@@ -2,27 +2,20 @@
 #include <WiFi.h>
 #include <WifiHandler.h>
 
-bool WifiHandler::beginWithFallback(const char *ssid,
-                                    const char *pwd,
-                                    bool useApMode)
+bool WifiHandler::connect(const char *ssid,
+                          const char *pwd,
+                          bool useApMode,
+                          int apChannel)
 {
     if (useApMode)
     {
-        return apMode(ssid, pwd);
+        return apMode(ssid, pwd, apChannel);
     }
 
-    if (connect(ssid, pwd))
-    {
-        return true;
-    }
-
-    // fall back to the access point so the car stays reachable
-    Serial.println("Falling back to AP mode");
-
-    return apMode(ssid, pwd);
+    return staMode(ssid, pwd);
 }
 
-bool WifiHandler::connect(const char *ssid,
+bool WifiHandler::staMode(const char *ssid,
                           const char *pwd,
                           uint32_t timeoutMs)
 {
@@ -45,6 +38,9 @@ bool WifiHandler::connect(const char *ssid,
 
     WiFi.setSleep(false);
 
+    // optimize TX power for better range and stability
+    WiFi.setTxPower(WIFI_POWER_17dBm);
+
     debug(ssid, false);
 
     return true;
@@ -63,6 +59,9 @@ bool WifiHandler::apMode(const char *ssid,
     }
 
     WiFi.setSleep(false);
+    
+    // optimize TX power for better range and stability
+    WiFi.setTxPower(WIFI_POWER_17dBm);
 
     debug(ssid, true);
 
